@@ -3,140 +3,590 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AES-128 Encryption Visualizer</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<title>AES-128 Cryptographic Laboratory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=DM+Sans:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #07090f; --surface: #0d1017; --surface2: #121721; --surface3: #181e2c;
-    --border: #1e2538; --border-lit: #2a3350; --text: #cdd3e0; --text-dim: #6b7394;
-    --text-bright: #eaf0ff; --accent: #00e5ff; --accent-dim: rgba(0,229,255,0.12);
-    --accent-glow: rgba(0,229,255,0.25); --green: #00e676; --orange: #ffab40;
-    --red: #ff5252; --pink: #f06292;
-    --mono: 'IBM Plex Mono', monospace; --sans: 'Outfit', sans-serif;
+    --bg: #fafbfc;
+    --bg-2: #ffffff;
+    --bg-3: #f4f5f7;
+    --bg-4: #eceef1;
+    --border: #e5e7eb;
+    --border-lit: #d1d5db;
+    --border-bright: #9ca3af;
+    --text: #111827;
+    --text-dim: #6b7280;
+    --text-muted: #9ca3af;
+    --text-bright: #030712;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --accent-soft: #eef2ff;
+    --accent-tint: rgba(79, 70, 229, 0.08);
+    --accent-glow: rgba(79, 70, 229, 0.2);
+    --violet: #7c3aed;
+    --pink: #ec4899;
+    --teal: #0d9488;
+    --amber: #d97706;
+    --crimson: #dc2626;
+    --emerald: #10b981;
+    --violet-soft: #f3e8ff;
+    --pink-soft: #fce7f3;
+    --teal-soft: #ccfbf1;
+    --amber-soft: #fef3c7;
+    --crimson-soft: #fee2e2;
+    --emerald-soft: #d1fae5;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+    --shadow-xl: 0 24px 60px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'DM Sans', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
-  body::before {
-    content: ''; position: fixed; inset: 0;
-    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 60px 60px; opacity: 0.15; pointer-events: none; z-index: 0;
-  }
-  .app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
-  .header { margin-bottom: 36px; animation: fadeSlide 0.6s ease-out; }
-  .header h1 { font-family: var(--sans); font-size: 32px; font-weight: 800; letter-spacing: -1px; color: var(--text-bright); line-height: 1; }
-  .header h1 span { color: var(--accent); text-shadow: 0 0 30px var(--accent-glow); }
-  .header .sub { font-family: var(--mono); font-size: 12px; color: var(--text-dim); margin-top: 8px; letter-spacing: 1.5px; text-transform: uppercase; }
-  .header .credits { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-top: 10px; letter-spacing: 0.5px; }
-  .header .credits span { color: var(--text); }
-  .input-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; animation: fadeSlide 0.6s ease-out 0.1s both; }
-  .input-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-  .input-group { flex: 1; min-width: 280px; }
-  .input-group label { display: block; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
-  .input-group input { width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--accent); font-family: var(--mono); font-size: 15px; letter-spacing: 1.5px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
-  .input-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-  .input-group input::placeholder { color: var(--border-lit); }
-  .char-count { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 4px; text-align: right; }
-  .char-count.ok { color: var(--green); }
-  .char-count.bad { color: var(--red); }
-  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .btn { padding: 11px 28px; border: none; border-radius: 8px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
-  .btn-primary { background: var(--accent); color: var(--bg); box-shadow: 0 0 20px var(--accent-dim); }
-  .btn-primary:hover { box-shadow: 0 0 30px var(--accent-glow); transform: translateY(-1px); }
-  .btn-secondary { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
-  .btn-secondary:hover { background: var(--surface3); color: var(--text); border-color: var(--border-lit); }
-  .btn-secondary.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
-  .error-msg { font-family: var(--mono); font-size: 12px; color: var(--red); margin-top: 12px; padding: 8px 12px; background: rgba(255,82,82,0.08); border-radius: 6px; border-left: 3px solid var(--red); }
-  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 20px; animation: fadeSlide 0.4s ease-out; }
-  .result-card.cipher { border-color: var(--accent); box-shadow: 0 0 40px rgba(0,229,255,0.06); }
-  .section-label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
-  .cipher-hex { font-family: var(--mono); font-size: 16px; color: var(--accent); letter-spacing: 2px; word-break: break-all; margin-top: 12px; text-shadow: 0 0 20px var(--accent-glow); }
-  .matrix-wrap { display: inline-block; margin: 0 10px 12px 0; vertical-align: top; }
-  .matrix-label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
-  .matrix-label.sub { color: var(--orange); }
-  .matrix-label.shift { color: var(--pink); }
-  .matrix-label.mix { color: var(--green); }
-  .matrix-label.key { color: var(--text-dim); }
-  .matrix-label.result { color: var(--accent); }
-  .matrix { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 4px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); }
-  .matrix.highlight { border-color: var(--accent); background: rgba(0,229,255,0.03); box-shadow: 0 0 12px rgba(0,229,255,0.06); }
-  .matrix .cell { font-family: var(--mono); font-size: 12px; font-weight: 500; padding: 4px 6px; text-align: center; border-radius: 3px; background: var(--surface); color: var(--text); letter-spacing: 0.5px; }
-  .matrix.highlight .cell { background: var(--surface2); color: var(--accent); }
-  .round-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; overflow: hidden; transition: border-color 0.2s; animation: fadeSlide 0.3s ease-out; }
-  .round-item.open { border-color: var(--border-lit); }
-  .round-header { padding: 12px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.15s; }
-  .round-header:hover { background: var(--surface2); }
-  .round-header .round-name { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); transition: color 0.15s; }
-  .round-item.open .round-name { color: var(--accent); }
-  .round-header .arrow { font-size: 14px; color: var(--text-dim); transition: transform 0.25s; }
-  .round-item.open .arrow { transform: rotate(180deg); }
-  .round-body { padding: 6px 16px 18px; display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; border-top: 1px solid var(--border); }
-  .keys-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-  @keyframes fadeSlide { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes pulse { 0%,100% { box-shadow: 0 0 20px var(--accent-dim); } 50% { box-shadow: 0 0 35px var(--accent-glow); } }
-  @keyframes slideInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-  @keyframes slideInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border-lit); border-radius: 3px; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; line-height: 1.5; }
 
-  /* Chatbot */
-  .chat-fab { position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: var(--bg); border: none; cursor: pointer; font-size: 26px; display: flex; align-items: center; justify-content: center; animation: pulse 2.5s ease-in-out infinite; z-index: 100; transition: transform 0.2s; }
+  .bg-blobs { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35; animation: blobFloat 24s ease-in-out infinite; }
+  .blob-1 { width: 520px; height: 520px; background: radial-gradient(circle, #c7d2fe 0%, transparent 70%); top: -180px; left: -120px; animation-duration: 28s; }
+  .blob-2 { width: 680px; height: 680px; background: radial-gradient(circle, #fbcfe8 0%, transparent 70%); top: 10%; right: -200px; animation-duration: 32s; animation-delay: -8s; }
+  .blob-3 { width: 480px; height: 480px; background: radial-gradient(circle, #bae6fd 0%, transparent 70%); bottom: -120px; left: 18%; animation-duration: 26s; animation-delay: -14s; }
+  .blob-4 { width: 560px; height: 560px; background: radial-gradient(circle, #ddd6fe 0%, transparent 70%); bottom: 20%; right: 10%; animation-duration: 34s; animation-delay: -20s; opacity: 0.25; }
+  .blob-5 { width: 380px; height: 380px; background: radial-gradient(circle, #a5f3fc 0%, transparent 70%); top: 40%; left: 40%; animation-duration: 22s; animation-delay: -6s; opacity: 0.22; }
+  @keyframes blobFloat { 0%, 100% { transform: translate(0, 0) scale(1); } 25% { transform: translate(40px, -60px) scale(1.08); } 50% { transform: translate(-30px, 40px) scale(0.95); } 75% { transform: translate(50px, 30px) scale(1.05); } }
+
+  .topbar { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-bottom: 1px solid rgba(229, 231, 235, 0.7); }
+  .topbar-inner { max-width: 1280px; margin: 0 auto; padding: 14px 32px; display: flex; align-items: center; gap: 40px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand-mark { font-family: var(--display); font-weight: 600; font-style: italic; font-size: 24px; color: var(--text-bright); letter-spacing: -0.5px; font-variation-settings: "opsz" 30, "SOFT" 50; }
+  .brand-mark em { color: var(--accent); font-style: italic; }
+  .brand-meta { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+  .nav-tabs { display: flex; gap: 0; margin-left: auto; flex-wrap: wrap; }
+  .nav-tab { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); background: none; border: none; padding: 10px 16px; cursor: pointer; position: relative; transition: color 0.2s; display: flex; align-items: center; gap: 8px; }
+  .nav-tab .num { color: var(--text-muted); font-size: 10px; transition: color 0.2s; }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab:hover .num { color: var(--accent); }
+  .nav-tab.active { color: var(--text-bright); }
+  .nav-tab.active .num { color: var(--accent); }
+  .nav-tab.active::after { content: ''; position: absolute; bottom: -15px; left: 16px; right: 16px; height: 2px; background: var(--accent); border-radius: 2px; }
+
+  .page { position: relative; z-index: 2; }
+  .section { max-width: 1280px; margin: 0 auto; padding: 48px 32px 80px; display: none; animation: sectionIn 0.5s cubic-bezier(.2,.8,.2,1); }
+  .section.active { display: block; }
+  @keyframes sectionIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  .eyebrow { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  .eyebrow::before { content: ''; display: inline-block; width: 24px; height: 2px; background: var(--accent); border-radius: 2px; }
+  h1.display { font-family: var(--display); font-weight: 400; font-size: clamp(42px, 6vw, 72px); line-height: 0.98; letter-spacing: -2px; color: var(--text-bright); margin-bottom: 20px; font-variation-settings: "opsz" 144, "SOFT" 30; }
+  h1.display em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 144, "SOFT" 100; }
+  h2.section-title { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 4vw, 48px); line-height: 1; letter-spacing: -1px; color: var(--text-bright); margin-bottom: 12px; font-variation-settings: "opsz" 100; }
+  h2.section-title em { font-style: italic; color: var(--accent); }
+  .lede { font-family: var(--body); font-size: 16px; color: var(--text-dim); max-width: 680px; margin-bottom: 36px; line-height: 1.6; }
+
+  .card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; padding: 24px; transition: border-color 0.2s, box-shadow 0.2s; box-shadow: var(--shadow-sm); }
+  .card:hover { box-shadow: var(--shadow-md); }
+  .card.accent { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-tint), var(--shadow-md); }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px dashed var(--border-lit); }
+  .label { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; }
+
+  .mode-toggle { display: inline-flex; background: var(--bg-3); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 20px; position: relative; }
+  .mode-btn { font-family: var(--body); font-size: 13px; font-weight: 600; letter-spacing: 0.3px; padding: 10px 22px; border: none; background: transparent; color: var(--text-dim); cursor: pointer; border-radius: 8px; transition: color 0.2s; position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px; }
+  .mode-btn.active { color: #fff; }
+  .mode-indicator { position: absolute; top: 4px; bottom: 4px; width: calc(50% - 4px); background: var(--accent); border-radius: 8px; transition: transform 0.3s cubic-bezier(.2,.8,.2,1); box-shadow: 0 2px 8px var(--accent-glow); z-index: 1; }
+  .mode-indicator.decrypt { transform: translateX(100%); background: var(--teal); box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25); }
+
+  .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 640px) { .input-grid { grid-template-columns: 1fr; } }
+  .input-group label.field-label { display: block; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+  .hex-input { width: 100%; padding: 14px 16px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 10px; color: var(--accent); font-family: var(--mono); font-size: 15px; letter-spacing: 1.5px; outline: none; transition: all 0.2s; font-weight: 500; }
+  .hex-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-tint); background: var(--bg-2); }
+  .hex-input::placeholder { color: var(--border-bright); }
+  .char-count { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 6px; text-align: right; letter-spacing: 1px; }
+  .char-count.ok { color: var(--emerald); }
+  .char-count.bad { color: var(--crimson); }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn { font-family: var(--body); font-weight: 600; font-size: 13px; letter-spacing: 0.3px; padding: 11px 22px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 14px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 6px 20px var(--accent-glow); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary.decrypt { background: var(--teal); box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25); }
+  .btn-primary.decrypt:hover { background: #0f766e; box-shadow: 0 6px 20px rgba(13, 148, 136, 0.35); }
+  .btn-ghost { background: var(--bg-2); border-color: var(--border-lit); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .btn-ghost.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+  .btn-icon { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border-lit); background: var(--bg-2); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; padding: 0; }
+  .btn-icon:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  .slider-group { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
+  .slider { -webkit-appearance: none; appearance: none; width: 120px; height: 4px; border-radius: 2px; background: var(--border); outline: none; cursor: pointer; }
+  .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 2px 6px var(--accent-glow); border: 2px solid #fff; }
+  .slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #fff; }
+
+  .matrix-wrap { display: inline-flex; flex-direction: column; gap: 6px; margin: 0 14px 14px 0; vertical-align: top; }
+  .matrix-wrap .matrix-title { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
+  .matrix { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 5px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 10px; transition: all 0.25s; }
+  .matrix.highlight { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); background: var(--bg-2); }
+  .matrix .cell { font-family: var(--mono); font-size: 13px; font-weight: 600; padding: 7px 9px; text-align: center; border-radius: 6px; background: var(--bg-2); color: var(--text); letter-spacing: 0.5px; transition: all 0.25s; position: relative; border: 1px solid var(--border); }
+  .matrix.highlight .cell { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-tint); }
+  .matrix-wrap.sub .matrix-title { color: var(--violet); }
+  .matrix-wrap.shift .matrix-title { color: var(--pink); }
+  .matrix-wrap.mix .matrix-title { color: var(--teal); }
+  .matrix-wrap.key .matrix-title { color: var(--amber); }
+  .matrix-wrap.result .matrix-title { color: var(--accent); }
+  .matrix-wrap.sub .matrix { border-color: #ddd6fe; background: var(--violet-soft); }
+  .matrix-wrap.shift .matrix { border-color: #fbcfe8; background: var(--pink-soft); }
+  .matrix-wrap.mix .matrix { border-color: #a7f3d0; background: var(--teal-soft); }
+  .matrix-wrap.key .matrix { border-color: #fde68a; background: var(--amber-soft); }
+  .cell.changed { animation: cellPulse 0.6s ease-out; background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
+  @keyframes cellPulse { 0% { transform: scale(1.15); background: var(--accent); color: #fff; } 100% { transform: scale(1); } }
+  .cell.diff { background: var(--crimson-soft) !important; color: var(--crimson) !important; font-weight: 700; border-color: #fecaca !important; }
+
+  .round-panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; overflow: hidden; transition: all 0.2s; }
+  .round-panel.open { border-color: var(--border-lit); box-shadow: var(--shadow-sm); }
+  .round-panel.current { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint), var(--shadow-md); }
+  .round-head { padding: 14px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; gap: 12px; transition: background 0.15s; }
+  .round-head:hover { background: var(--bg-3); }
+  .round-head .round-name { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 1px; display: flex; align-items: center; gap: 14px; }
+  .round-head .round-name .round-num { font-family: var(--display); font-style: italic; font-size: 22px; color: var(--text-muted); min-width: 36px; font-weight: 500; }
+  .round-panel.open .round-head .round-num, .round-panel.current .round-head .round-num { color: var(--accent); }
+  .round-head .arrow { font-family: var(--mono); color: var(--text-muted); transition: transform 0.25s; }
+  .round-panel.open .arrow { transform: rotate(90deg); }
+  .round-body { padding: 0 20px 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+
+  .anim-bar { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+  .anim-progress { flex: 1; min-width: 180px; height: 6px; background: var(--bg-4); border-radius: 3px; overflow: hidden; position: relative; }
+  .anim-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #818cf8); width: 0; transition: width 0.3s ease-out; border-radius: 3px; }
+  .anim-status { font-family: var(--mono); font-size: 11px; color: var(--text-dim); letter-spacing: 1px; min-width: 180px; font-weight: 500; }
+
+  .sbox-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 900px) { .sbox-layout { grid-template-columns: 1fr; } }
+  .sbox-tabs { display: inline-flex; gap: 6px; margin-bottom: 16px; background: var(--bg-3); padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
+  .sbox-tab { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 8px 14px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+  .sbox-tab.active { background: var(--bg-2); color: var(--accent); box-shadow: var(--shadow-sm); }
+  .sbox-grid-wrap { overflow-x: auto; }
+  .sbox-grid { display: inline-grid; grid-template-columns: auto repeat(16, 1fr); gap: 1px; background: var(--border); padding: 2px; border-radius: 10px; border: 1px solid var(--border); min-width: 100%; }
+  .sbox-grid .hdr { background: var(--bg-3); color: var(--text-muted); font-family: var(--mono); font-size: 10px; padding: 7px 4px; text-align: center; font-weight: 700; }
+  .sbox-grid .hdr.corner { background: var(--bg-4); }
+  .sbox-cell { background: var(--bg-2); color: var(--text); font-family: var(--mono); font-size: 11px; padding: 7px 4px; text-align: center; cursor: pointer; transition: all 0.12s; letter-spacing: 0.3px; font-weight: 500; }
+  .sbox-cell:hover { background: var(--accent); color: #fff; transform: scale(1.2); z-index: 5; position: relative; border-radius: 4px; font-weight: 700; }
+  .sbox-cell.highlight-row, .sbox-cell.highlight-col { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .sbox-cell.highlight-cell { background: var(--accent); color: #fff; font-weight: 700; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent); z-index: 4; position: relative; }
+  .sbox-grid .hdr.highlight { background: var(--accent); color: #fff; }
+  .sbox-inspect { display: flex; flex-direction: column; gap: 16px; }
+  .byte-large { font-family: var(--mono); font-size: 44px; font-weight: 700; color: var(--accent); letter-spacing: 2px; text-align: center; padding: 20px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 12px; line-height: 1; }
+  .byte-large.input { color: var(--text); }
+  .byte-large.arrow { font-size: 22px; color: var(--text-muted); padding: 6px; background: none; border: none; }
+  .binary-view { font-family: var(--mono); font-size: 12px; color: var(--text-dim); letter-spacing: 2px; text-align: center; font-weight: 500; }
+  .binary-view .bit-on { color: var(--accent); font-weight: 700; }
+
+  .gf-inputs { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 24px; }
+  .gf-input-box { flex: 1; min-width: 140px; }
+  .gf-byte-input { width: 100%; padding: 12px 14px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 10px; color: var(--teal); font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: 2px; outline: none; text-align: center; text-transform: uppercase; transition: all 0.2s; }
+  .gf-byte-input:focus { border-color: var(--teal); box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1); background: var(--bg-2); }
+  .gf-op { font-family: var(--display); font-style: italic; font-size: 32px; color: var(--text-muted); padding: 0 8px; align-self: center; margin-bottom: 10px; }
+  .gf-result { font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--teal); letter-spacing: 3px; text-align: center; padding: 24px; background: var(--teal-soft); border: 1px solid var(--teal); border-radius: 12px; margin-bottom: 24px; }
+  .gf-steps { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); }
+  .gf-step { padding: 12px 20px; display: grid; grid-template-columns: 40px 1fr auto auto; gap: 16px; font-family: var(--mono); font-size: 12px; align-items: center; border-bottom: 1px solid var(--border); }
+  .gf-step:last-child { border-bottom: none; }
+  .gf-step.reduce { background: var(--crimson-soft); }
+  .gf-step .step-i { color: var(--text-muted); font-weight: 600; }
+  .gf-step .step-note { color: var(--text-dim); font-family: var(--body); font-size: 11px; letter-spacing: 0.5px; }
+  .gf-step .step-val { color: var(--text); font-weight: 600; }
+  .gf-step .step-val.active { color: var(--teal); font-weight: 700; }
+  .gf-step.reduce .step-note { color: var(--crimson); font-weight: 500; }
+  .gf-step.reduce .step-val { color: var(--crimson); }
+  .gf-quick { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .gf-quick button { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; padding: 7px 14px; background: var(--bg-2); border: 1px solid var(--border-lit); color: var(--text-dim); border-radius: 20px; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+  .gf-quick button:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-soft); }
+
+  .ava-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  @media (max-width: 720px) { .ava-inputs { grid-template-columns: 1fr; } }
+  .ava-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
+  .ava-chart { background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+  .ava-chart-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+  .ava-metric { font-family: var(--display); font-style: italic; font-size: 36px; color: var(--crimson); line-height: 1; font-weight: 500; }
+  .ava-metric-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; font-weight: 600; }
+  .ava-svg { width: 100%; height: 220px; display: block; }
+  .ava-rounds-grid { display: grid; grid-template-columns: auto 1fr 1fr auto; gap: 16px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--bg-2); }
+  .ava-rounds-grid:first-of-type { border-radius: 12px 12px 0 0; border: 1px solid var(--border); }
+  .ava-rounds-grid:last-of-type { border-radius: 0 0 12px 12px; }
+  .ava-rounds-grid.header { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; background: var(--bg-3); }
+  .ava-round-label { font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: 1px; color: var(--text); min-width: 72px; }
+  .ava-diff-count { font-family: var(--mono); font-size: 14px; color: var(--crimson); font-weight: 700; min-width: 60px; text-align: right; }
+  .bit-flip-btn { font-family: var(--mono); font-size: 10px; padding: 6px 10px; background: var(--bg-2); border: 1px solid var(--border-lit); border-radius: 6px; color: var(--text-dim); cursor: pointer; transition: all 0.15s; font-weight: 600; }
+  .bit-flip-btn:hover { border-color: var(--crimson); color: var(--crimson); background: var(--crimson-soft); }
+
+  .quiz-stats { display: flex; gap: 20px; justify-content: center; margin: 28px 0; flex-wrap: wrap; }
+  .quiz-stat { background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; padding: 18px 32px; text-align: center; min-width: 140px; box-shadow: var(--shadow-sm); }
+  .quiz-stat .n { font-family: var(--display); font-style: italic; font-size: 40px; color: var(--accent); line-height: 1; font-weight: 500; }
+  .quiz-stat .lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-top: 6px; font-weight: 600; }
+  .quiz-progress { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 36px; }
+  .quiz-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #818cf8); transition: width 0.4s cubic-bezier(.2,.8,.2,1); }
+  .quiz-question { background: var(--bg-2); border: 1px solid var(--border); border-radius: 18px; padding: 36px; margin-bottom: 20px; animation: sectionIn 0.4s ease-out; box-shadow: var(--shadow-md); }
+  .q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .q-number { font-family: var(--display); font-style: italic; font-size: 18px; color: var(--text-muted); }
+  .q-number em { color: var(--accent); font-size: 24px; font-weight: 500; }
+  .q-cat { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); padding: 5px 12px; border: 1px solid var(--accent); border-radius: 6px; background: var(--accent-soft); font-weight: 700; }
+  .q-text { font-family: var(--display); font-size: 26px; line-height: 1.35; color: var(--text-bright); margin-bottom: 24px; font-weight: 400; letter-spacing: -0.3px; }
+  .q-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 640px) { .q-options { grid-template-columns: 1fr; } }
+  .q-option { padding: 16px 20px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s; font-family: var(--body); font-size: 14px; color: var(--text); text-align: left; display: flex; gap: 14px; align-items: center; font-weight: 500; }
+  .q-option:hover:not(.answered) { border-color: var(--accent); transform: translateX(4px); background: var(--accent-soft); }
+  .q-option .key { font-family: var(--mono); font-size: 11px; color: var(--text-muted); width: 24px; height: 24px; border: 1px solid var(--border-lit); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700; }
+  .q-option.correct { border-color: var(--emerald); background: var(--emerald-soft); color: #065f46; }
+  .q-option.correct .key { border-color: var(--emerald); color: var(--emerald); background: #fff; }
+  .q-option.wrong { border-color: var(--crimson); background: var(--crimson-soft); color: #991b1b; }
+  .q-option.wrong .key { border-color: var(--crimson); color: var(--crimson); background: #fff; }
+  .q-option.answered { cursor: default; }
+  .q-option.dimmed { opacity: 0.4; }
+  .q-explain { margin-top: 20px; padding: 16px 20px; background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 8px; font-size: 13px; color: var(--text); line-height: 1.6; animation: sectionIn 0.35s; }
+  .q-explain strong { color: var(--accent); font-weight: 700; }
+  .quiz-result { text-align: center; padding: 40px 0; }
+  .quiz-result .score { font-family: var(--display); font-style: italic; font-size: 96px; color: var(--accent); line-height: 1; font-weight: 500; }
+  .quiz-result .score-label { font-family: var(--mono); font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-top: 16px; margin-bottom: 32px; font-weight: 600; }
+  .quiz-result .grade { font-family: var(--display); font-size: 28px; color: var(--text-bright); margin-bottom: 32px; font-weight: 400; max-width: 580px; margin-left: auto; margin-right: auto; line-height: 1.4; }
+
+  .about-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 32px; }
+  .team-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; transition: all 0.3s; box-shadow: var(--shadow-sm); }
+  .team-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .team-card .name { font-family: var(--display); font-size: 26px; font-weight: 400; color: var(--text-bright); margin-bottom: 6px; letter-spacing: -0.3px; }
+  .team-card .role { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+  .spec-table { background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-sm); }
+  .spec-row { display: grid; grid-template-columns: 200px 1fr; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 20px; }
+  .spec-row:last-child { border-bottom: none; }
+  .spec-row .spec-key { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; align-self: center; font-weight: 700; }
+  .spec-row .spec-val { color: var(--text); font-size: 14px; }
+  .spec-row .spec-val a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-tint); font-weight: 500; }
+  .spec-row .spec-val a:hover { border-bottom-color: var(--accent); }
+
+  .chat-fab { position: fixed; bottom: 24px; right: 24px; width: 58px; height: 58px; border-radius: 50%; background: var(--accent); color: #fff; border: none; cursor: pointer; box-shadow: 0 8px 24px var(--accent-glow), 0 2px 6px rgba(79, 70, 229, 0.2); animation: pulse 2.5s ease-in-out infinite; z-index: 100; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; }
   .chat-fab:hover { transform: scale(1.08); }
+  .chat-fab svg { width: 24px; height: 24px; }
   .chat-fab.hidden { display: none; }
-  .chat-panel { position: fixed; bottom: 24px; right: 24px; width: 380px; max-width: calc(100vw - 40px); height: 560px; max-height: calc(100vh - 60px); background: var(--surface); border: 1px solid var(--border-lit); border-radius: 16px; display: none; flex-direction: column; z-index: 101; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--accent-dim); animation: fadeSlide 0.25s ease-out; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--accent-tint), 0 8px 24px var(--accent-glow); } 50% { box-shadow: 0 0 0 14px rgba(79, 70, 229, 0), 0 8px 24px var(--accent-glow); } }
+  .chat-panel { position: fixed; bottom: 24px; right: 24px; width: 400px; max-width: calc(100vw - 40px); height: 580px; max-height: calc(100vh - 60px); background: var(--bg-2); border: 1px solid var(--border); border-radius: 20px; display: none; flex-direction: column; z-index: 101; overflow: hidden; box-shadow: var(--shadow-xl); animation: sectionIn 0.25s ease-out; }
   .chat-panel.open { display: flex; }
-  .chat-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(180deg, var(--surface2), var(--surface)); }
-  .chat-header .title { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 8px; }
-  .chat-header .title::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
-  .chat-header .close { background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; padding: 4px 8px; line-height: 1; }
+  .chat-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-3); }
+  .chat-header .title { font-family: var(--display); font-style: italic; font-size: 18px; color: var(--text-bright); display: flex; align-items: center; gap: 10px; font-weight: 500; }
+  .chat-header .title::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 0 3px var(--emerald-soft); }
+  .chat-header .close { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1; padding: 0 6px; font-weight: 300; }
   .chat-header .close:hover { color: var(--text); }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-  .msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; }
-  .msg.bot { background: var(--surface2); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; animation: slideInLeft 0.25s ease-out; }
-  .msg.user { background: var(--accent); color: var(--bg); align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; animation: slideInRight 0.25s ease-out; }
-  .msg strong { color: var(--accent); font-weight: 600; }
-  .msg.bot strong { color: var(--accent); }
-  .msg code { font-family: var(--mono); font-size: 12px; padding: 1px 5px; background: var(--bg); border-radius: 3px; color: var(--accent); }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 85%; padding: 11px 15px; border-radius: 16px; font-size: 13.5px; line-height: 1.55; }
+  .msg.bot { background: var(--bg-3); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; animation: msgIn 0.25s ease-out; }
+  .msg.user { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; animation: msgIn 0.25s ease-out; }
+  @keyframes msgIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+  .msg strong { color: var(--accent); font-weight: 700; }
+  .msg.user strong { color: #fff; }
+  .msg code { font-family: var(--mono); font-size: 12px; padding: 2px 6px; background: var(--bg-2); border-radius: 4px; color: var(--accent); border: 1px solid var(--border); }
+  .msg.user code { background: rgba(255,255,255,0.2); color: #fff; border-color: transparent; }
   .chat-quick { padding: 10px 14px 0; display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px solid var(--border); }
-  .quick-btn { font-family: var(--mono); font-size: 11px; padding: 6px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; color: var(--text-dim); cursor: pointer; transition: all 0.15s; }
-  .quick-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .quick-btn { font-family: var(--mono); font-size: 10px; padding: 6px 12px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 14px; color: var(--text-dim); cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; font-weight: 600; }
+  .quick-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
   .chat-input-row { padding: 12px 14px 14px; display: flex; gap: 8px; }
-  .chat-input { flex: 1; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 22px; color: var(--text); font-family: var(--sans); font-size: 13.5px; outline: none; transition: border-color 0.2s; }
-  .chat-input:focus { border-color: var(--accent); }
-  .chat-send { background: var(--accent); color: var(--bg); border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
-  .chat-send:hover { transform: scale(1.08); }
+  .chat-input { flex: 1; padding: 10px 14px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 22px; color: var(--text); font-family: var(--body); font-size: 13.5px; outline: none; transition: all 0.2s; }
+  .chat-input:focus { border-color: var(--accent); background: var(--bg-2); box-shadow: 0 0 0 3px var(--accent-tint); }
+  .chat-send { background: var(--accent); color: #fff; border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; box-shadow: 0 2px 6px var(--accent-glow); }
+  .chat-send:hover { transform: scale(1.08); background: var(--accent-hover); }
+  .chat-send svg { width: 16px; height: 16px; }
+
+  .error-msg { font-family: var(--mono); font-size: 12px; color: var(--crimson); margin-top: 12px; padding: 10px 14px; background: var(--crimson-soft); border-radius: 8px; border-left: 3px solid var(--crimson); font-weight: 500; }
+
+  .cipher-hero { display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: center; padding: 12px 16px; }
+  .cipher-hex { font-family: var(--mono); font-size: 18px; color: var(--accent); letter-spacing: 2px; word-break: break-all; line-height: 1.5; font-weight: 600; }
+  .cipher-hex.decrypt-mode { color: var(--teal); }
+  @media (max-width: 640px) { .cipher-hero { grid-template-columns: 1fr; } }
+
+  .keys-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-lit); border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+  .footer-mark { max-width: 1280px; margin: 60px auto 40px; padding: 0 32px; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
+  .footer-mark .bar { flex: 1; height: 1px; background: var(--border); margin: 0 20px; }
 </style>
 </head>
 <body>
-<div class="app" id="app">
-  <div class="header">
-    <h1><span>AES-128</span> Encryption Visualizer</h1>
-    <div class="sub">Lookup-table implementation &middot; round-by-round state &amp; key expansion</div>
-    <div class="credits">EECE 455 &middot; <span>Jad Moharam</span> · <span>Mohamed Dayeh</span> · <span>Mohamad Taha</span> · <span>Ali Waked</span></div>
+
+<div class="bg-blobs">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+  <div class="blob blob-5"></div>
+</div>
+
+<nav class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">aes<em>·</em>128</div>
+      <div class="brand-meta">Cryptographic Laboratory</div>
+    </div>
+    <div class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" data-tab="cipher"><span class="num">01</span>Cipher</button>
+      <button class="nav-tab" data-tab="sbox"><span class="num">02</span>S-Box</button>
+      <button class="nav-tab" data-tab="galois"><span class="num">03</span>Galois Field</button>
+      <button class="nav-tab" data-tab="avalanche"><span class="num">04</span>Avalanche</button>
+      <button class="nav-tab" data-tab="quiz"><span class="num">05</span>Quiz</button>
+      <button class="nav-tab" data-tab="about"><span class="num">06</span>About</button>
+    </div>
   </div>
-  <div class="input-panel">
-    <div class="input-row">
+</nav>
+
+<div class="page">
+
+<section class="section active" id="section-cipher">
+  <div class="eyebrow">Section 01 / The Cipher</div>
+  <h1 class="display" id="cipherHeading">Encrypt a block, <em>watch every round.</em></h1>
+  <p class="lede" id="cipherLede">Enter a 128-bit plaintext and key in hexadecimal. The cipher computes each of the ten AES rounds, expanding the key into eleven round keys and showing every intermediate state as a 4 × 4 byte matrix. Hit <strong>Animate</strong> to watch the transformations play out step by step.</p>
+
+  <div class="mode-toggle">
+    <div class="mode-indicator" id="modeIndicator"></div>
+    <button class="mode-btn active" id="modeEncBtn" data-mode="encrypt">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Encrypt
+    </button>
+    <button class="mode-btn" id="modeDecBtn" data-mode="decrypt">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+      Decrypt
+    </button>
+  </div>
+
+  <div class="card" style="margin-bottom: 20px;">
+    <div class="input-grid">
       <div class="input-group">
-        <label>Plaintext (hex)</label>
-        <input id="msgInput" maxlength="32" placeholder="3243f6a8885a308d313198a2e0370734" spellcheck="false">
+        <label class="field-label" id="inputLabel1">Plaintext (32 hex chars)</label>
+        <input class="hex-input" id="msgInput" maxlength="32" placeholder="3243f6a8885a308d313198a2e0370734" spellcheck="false">
         <div class="char-count" id="msgCount">0 / 32</div>
       </div>
       <div class="input-group">
-        <label>Key (hex)</label>
-        <input id="keyInput" maxlength="32" placeholder="2b7e151628aed2a6abf7158809cf4f3c" spellcheck="false">
+        <label class="field-label">Key (32 hex chars)</label>
+        <input class="hex-input" id="keyInput" maxlength="32" placeholder="2b7e151628aed2a6abf7158809cf4f3c" spellcheck="false">
         <div class="char-count" id="keyCount">0 / 32</div>
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="encryptBtn">Encrypt</button>
-      <button class="btn btn-secondary" id="keysBtn">Show Key Schedule</button>
+      <button class="btn btn-primary" id="encryptBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        <span id="encryptBtnText">Encrypt</span>
+      </button>
+      <button class="btn btn-ghost" id="animateBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg>
+        Animate
+      </button>
+      <button class="btn btn-ghost" id="keysBtn">Show Key Schedule</button>
+      <div class="slider-group" style="margin-left:auto">
+        <span>Speed</span>
+        <input class="slider" type="range" id="speedSlider" min="0" max="3" step="1" value="1">
+        <span id="speedLabel" style="min-width:28px; font-weight:600;">1×</span>
+      </div>
     </div>
-    <div id="errorBox" style="display:none" class="error-msg"></div>
+    <div id="errorBox" class="error-msg" style="display:none"></div>
   </div>
-  <div id="output"></div>
+
+  <div class="anim-bar" id="animBar" style="display:none;">
+    <button class="btn-icon" id="animPlay" title="Play/Pause">
+      <svg id="playIcon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <svg id="pauseIcon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <button class="btn-icon" id="animPrev" title="Previous step">◀</button>
+    <button class="btn-icon" id="animNext" title="Next step">▶</button>
+    <button class="btn-icon" id="animStop" title="Stop">■</button>
+    <div class="anim-progress"><div class="anim-progress-fill" id="animFill"></div></div>
+    <div class="anim-status" id="animStatus">Ready</div>
+  </div>
+
+  <div id="cipherOutput"></div>
+</section>
+
+<section class="section" id="section-sbox">
+  <div class="eyebrow">Section 02 / The Substitution Box</div>
+  <h1 class="display">The heart of <em>confusion.</em></h1>
+  <p class="lede">SubBytes is AES's only non-linear step. Every byte is replaced by looking it up in a 256-entry table. The math behind it is elegant, multiplicative inverse in GF(2⁸) followed by an affine transformation, but in software it's just one array lookup. Hover any cell to inspect a byte substitution. Toggle between the forward and inverse S-Box.</p>
+
+  <div class="sbox-tabs">
+    <button class="sbox-tab active" data-sbox="forward">Forward S-Box</button>
+    <button class="sbox-tab" data-sbox="inverse">Inverse S-Box</button>
+  </div>
+
+  <div class="sbox-layout">
+    <div>
+      <div class="card" style="padding: 20px;">
+        <div class="label" style="margin-bottom: 14px;" id="sboxLabel">S-Box (rows = upper nibble, cols = lower nibble)</div>
+        <div class="sbox-grid-wrap">
+          <div class="sbox-grid" id="sboxGrid"></div>
+        </div>
+      </div>
+    </div>
+    <div class="sbox-inspect">
+      <div class="card">
+        <div class="card-header"><div class="label">Byte inspector</div></div>
+        <div style="display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom: 16px;">
+          <div>
+            <div class="label" style="text-align:center; margin-bottom: 6px;">Input</div>
+            <div class="byte-large input" id="sboxIn">—</div>
+          </div>
+          <div class="byte-large arrow">→</div>
+          <div>
+            <div class="label" style="text-align:center; margin-bottom: 6px;">Output</div>
+            <div class="byte-large" id="sboxOut">—</div>
+          </div>
+        </div>
+        <div class="label" style="margin-bottom: 6px;">Binary</div>
+        <div class="binary-view" id="sboxBin">—</div>
+      </div>
+      <div class="card">
+        <div class="label" style="margin-bottom: 10px;">Try it</div>
+        <label class="field-label">Type a hex byte (00 – FF)</label>
+        <input class="hex-input" id="sboxTry" maxlength="2" placeholder="53" spellcheck="false" style="text-align:center; font-size: 20px; letter-spacing:3px;">
+        <div class="gf-quick" style="margin-top: 14px;">
+          <button onclick="sboxInspect(0x00)">00</button>
+          <button onclick="sboxInspect(0x53)">53</button>
+          <button onclick="sboxInspect(0xab)">AB</button>
+          <button onclick="sboxInspect(0xff)">FF</button>
+          <button onclick="sboxRandom()">Random</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="section-galois">
+  <div class="eyebrow">Section 03 / Finite Field Arithmetic</div>
+  <h1 class="display">The math behind <em>MixColumns.</em></h1>
+  <p class="lede">AES lives in GF(2⁸), the Galois field of 256 elements. Bytes are polynomials. Addition is XOR. Multiplication uses the irreducible polynomial <code style="font-family:var(--mono); color:var(--teal); background:var(--teal-soft); padding:3px 8px; border-radius:6px; font-weight:600;">x⁸ + x⁴ + x³ + x + 1</code> (0x11B). Type two bytes below and watch the shift-and-XOR algorithm compute their product.</p>
+
+  <div class="card">
+    <div class="gf-inputs">
+      <div class="gf-input-box">
+        <label class="field-label">Byte A</label>
+        <input class="gf-byte-input" id="gfA" maxlength="2" value="57" spellcheck="false">
+      </div>
+      <div class="gf-op">×</div>
+      <div class="gf-input-box">
+        <label class="field-label">Byte B</label>
+        <input class="gf-byte-input" id="gfB" maxlength="2" value="83" spellcheck="false">
+      </div>
+      <div class="gf-op">=</div>
+      <div class="gf-input-box">
+        <label class="field-label">Result</label>
+        <div class="gf-result" id="gfRes" style="font-size: 22px; padding: 12px; margin: 0;">—</div>
+      </div>
+    </div>
+    <div class="gf-quick">
+      <span style="font-family:var(--mono); font-size:11px; color:var(--text-muted); letter-spacing:1px; align-self:center; margin-right: 8px; font-weight:600;">QUICK:</span>
+      <button onclick="gfSet('57','83')">57 × 83 (Rijndael)</button>
+      <button onclick="gfSet('02','00')">× 2</button>
+      <button onclick="gfSet('03','00')">× 3</button>
+      <button onclick="gfSet('AB','CD')">AB × CD</button>
+      <button onclick="gfRandom()">Random</button>
+    </div>
+  </div>
+
+  <h2 class="section-title" style="margin-top: 40px; margin-bottom: 8px;">Step-by-step</h2>
+  <p class="lede" style="margin-bottom: 20px;">The algorithm processes one bit of B per step. If the bit is set, A is added (XORed) to the running total. Then A is shifted left and, if it overflows 8 bits, reduced by XORing with 0x1B.</p>
+  <div class="gf-steps" id="gfSteps"></div>
+</section>
+
+<section class="section" id="section-avalanche">
+  <div class="eyebrow">Section 04 / Diffusion &amp; the Avalanche Effect</div>
+  <h1 class="display">Flip one bit. <em>Watch chaos unfold.</em></h1>
+  <p class="lede">AES is designed so that a one-bit change in the input cascades through the cipher, affecting roughly half of all output bits within a few rounds. This is the avalanche effect, the hallmark of a strong block cipher. Type two slightly different plaintexts and watch them diverge.</p>
+
+  <div class="ava-inputs">
+    <div class="card">
+      <div class="label" style="color: var(--accent); margin-bottom: 10px;">Plaintext A</div>
+      <input class="hex-input" id="avaA" maxlength="32" value="3243f6a8885a308d313198a2e0370734" spellcheck="false">
+      <div id="avaAFlip" style="margin-top: 12px; display:flex; flex-wrap: wrap; gap:3px;"></div>
+    </div>
+    <div class="card">
+      <div class="label" style="color: var(--crimson); margin-bottom: 10px;">Plaintext B (flip bits to differ from A)</div>
+      <input class="hex-input" id="avaB" maxlength="32" value="3243f6a8885a308d313198a2e0370735" spellcheck="false" style="color: var(--crimson);">
+      <div id="avaBFlip" style="margin-top: 12px; display:flex; flex-wrap: wrap; gap:3px;"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="label" style="margin-bottom: 10px;">Shared key</div>
+    <input class="hex-input" id="avaKey" maxlength="32" value="2b7e151628aed2a6abf7158809cf4f3c" spellcheck="false">
+  </div>
+
+  <div class="ava-controls">
+    <button class="btn btn-primary" id="avaRun">Run Comparison</button>
+    <button class="btn btn-ghost" id="avaCopy">Copy A → B</button>
+    <button class="btn btn-ghost" id="avaFlipRandom">Flip Random Bit</button>
+  </div>
+
+  <div id="avaResults"></div>
+</section>
+
+<section class="section" id="section-quiz">
+  <div class="eyebrow">Section 05 / Self-Test</div>
+  <h1 class="display">Test your <em>understanding.</em></h1>
+  <p class="lede">Twenty questions on AES-128. A mix of conceptual, structural, and visual, some ask you to predict the output of an operation on a state matrix. Get instant feedback with explanations.</p>
+  <div id="quizContainer"></div>
+</section>
+
+<section class="section" id="section-about">
+  <div class="eyebrow">Section 06 / Project Info</div>
+  <h1 class="display">Built for <em>EECE 455.</em></h1>
+  <p class="lede">A complete AES-128 implementation with educational visualizations, developed as a final project for Computer and Network Security at the American University of Beirut, Spring 2026.</p>
+
+  <h2 class="section-title" style="margin-top:40px">The <em>team</em></h2>
+  <div class="about-grid">
+    <div class="team-card"><div class="name">Jad Moharam</div><div class="role">Implementation &amp; Deployment</div></div>
+    <div class="team-card"><div class="name">Mohamed Dayeh</div><div class="role">Algorithm &amp; Verification</div></div>
+    <div class="team-card"><div class="name">Mohamad Taha</div><div class="role">Design &amp; Documentation</div></div>
+    <div class="team-card"><div class="name">Ali Waked</div><div class="role">Testing &amp; Research</div></div>
+  </div>
+
+  <h2 class="section-title" style="margin-top:56px">Tech <em>specs</em></h2>
+  <div class="spec-table">
+    <div class="spec-row"><div class="spec-key">Standard</div><div class="spec-val">NIST FIPS Publication 197 (2001)</div></div>
+    <div class="spec-row"><div class="spec-key">Algorithm</div><div class="spec-val">AES-128 · 10 rounds · 128-bit key &amp; block · Encrypt + Decrypt</div></div>
+    <div class="spec-row"><div class="spec-key">Implementation</div><div class="spec-val">Lookup-table S-Box &amp; Inverse S-Box &amp; Rcon, software GF(2⁸) multiplication</div></div>
+    <div class="spec-row"><div class="spec-key">Stack</div><div class="spec-val">Single HTML file · embedded CSS &amp; JavaScript · no dependencies</div></div>
+    <div class="spec-row"><div class="spec-key">Hosting</div><div class="spec-val"><a href="https://jadmoh123.github.io/EECE-455-project/" target="_blank">jadmoh123.github.io/EECE-455-project</a></div></div>
+    <div class="spec-row"><div class="spec-key">Source</div><div class="spec-val"><a href="https://github.com/JadMoh123/EECE-455-project" target="_blank">github.com/JadMoh123/EECE-455-project</a></div></div>
+    <div class="spec-row"><div class="spec-key">Verification</div><div class="spec-val">Matches FIPS 197 Appendix B test vector byte-for-byte · Encrypt + Decrypt round-trip verified</div></div>
+  </div>
+
+  <h2 class="section-title" style="margin-top:56px">Typography <em>&amp;</em> color</h2>
+  <div class="spec-table">
+    <div class="spec-row"><div class="spec-key">Display</div><div class="spec-val" style="font-family:var(--display); font-size:22px; font-style:italic; color:var(--text-bright);">Fraunces</div></div>
+    <div class="spec-row"><div class="spec-key">Body</div><div class="spec-val" style="font-family:var(--body); font-size:16px;">DM Sans</div></div>
+    <div class="spec-row"><div class="spec-key">Mono</div><div class="spec-val" style="font-family:var(--mono); font-size:14px;">JetBrains Mono</div></div>
+    <div class="spec-row">
+      <div class="spec-key">Ops palette</div>
+      <div class="spec-val" style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
+        <span style="display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block; width:14px; height:14px; background:var(--violet); border-radius:50%;"></span>SubBytes</span>
+        <span style="display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block; width:14px; height:14px; background:var(--pink); border-radius:50%;"></span>ShiftRows</span>
+        <span style="display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block; width:14px; height:14px; background:var(--teal); border-radius:50%;"></span>MixColumns</span>
+        <span style="display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block; width:14px; height:14px; background:var(--amber); border-radius:50%;"></span>AddRoundKey</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="footer-mark">
+  <span>EECE 455</span>
+  <div class="bar"></div>
+  <span>Spring 2026 · AUB</span>
 </div>
 
-<button class="chat-fab" id="chatFab" title="Need help? Ask the assistant">💬</button>
+</div>
+
+<button class="chat-fab" id="chatFab" title="Ask the AES assistant">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+</button>
+
 <div class="chat-panel" id="chatPanel">
   <div class="chat-header">
     <div class="title">AES Assistant</div>
@@ -145,8 +595,10 @@
   <div class="chat-messages" id="chatMessages"></div>
   <div class="chat-quick" id="chatQuick"></div>
   <div class="chat-input-row">
-    <input class="chat-input" id="chatInput" placeholder="Ask anything about AES..." />
-    <button class="chat-send" id="chatSend">➤</button>
+    <input class="chat-input" id="chatInput" placeholder="Ask about AES…" />
+    <button class="chat-send" id="chatSend">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor"/></svg>
+    </button>
   </div>
 </div>
 
@@ -169,70 +621,1008 @@ const SBOX = [
   0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf,
   0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16
 ];
-const RCON = [[0x01,0x00,0x00,0x00],[0x02,0x00,0x00,0x00],[0x04,0x00,0x00,0x00],[0x08,0x00,0x00,0x00],[0x10,0x00,0x00,0x00],[0x20,0x00,0x00,0x00],[0x40,0x00,0x00,0x00],[0x80,0x00,0x00,0x00],[0x1b,0x00,0x00,0x00],[0x36,0x00,0x00,0x00]];
 
-function gmul(a, b) { let p = 0; for (let i = 0; i < 8; i++) { if (b & 1) p ^= a; const hi = a & 0x80; a = (a << 1) & 0xff; if (hi) a ^= 0x1b; b >>= 1; } return p; }
+const INV_SBOX = [
+  0x52,0x09,0x6a,0xd5,0x30,0x36,0xa5,0x38,0xbf,0x40,0xa3,0x9e,0x81,0xf3,0xd7,0xfb,
+  0x7c,0xe3,0x39,0x82,0x9b,0x2f,0xff,0x87,0x34,0x8e,0x43,0x44,0xc4,0xde,0xe9,0xcb,
+  0x54,0x7b,0x94,0x32,0xa6,0xc2,0x23,0x3d,0xee,0x4c,0x95,0x0b,0x42,0xfa,0xc3,0x4e,
+  0x08,0x2e,0xa1,0x66,0x28,0xd9,0x24,0xb2,0x76,0x5b,0xa2,0x49,0x6d,0x8b,0xd1,0x25,
+  0x72,0xf8,0xf6,0x64,0x86,0x68,0x98,0x16,0xd4,0xa4,0x5c,0xcc,0x5d,0x65,0xb6,0x92,
+  0x6c,0x70,0x48,0x50,0xfd,0xed,0xb9,0xda,0x5e,0x15,0x46,0x57,0xa7,0x8d,0x9d,0x84,
+  0x90,0xd8,0xab,0x00,0x8c,0xbc,0xd3,0x0a,0xf7,0xe4,0x58,0x05,0xb8,0xb3,0x45,0x06,
+  0xd0,0x2c,0x1e,0x8f,0xca,0x3f,0x0f,0x02,0xc1,0xaf,0xbd,0x03,0x01,0x13,0x8a,0x6b,
+  0x3a,0x91,0x11,0x41,0x4f,0x67,0xdc,0xea,0x97,0xf2,0xcf,0xce,0xf0,0xb4,0xe6,0x73,
+  0x96,0xac,0x74,0x22,0xe7,0xad,0x35,0x85,0xe2,0xf9,0x37,0xe8,0x1c,0x75,0xdf,0x6e,
+  0x47,0xf1,0x1a,0x71,0x1d,0x29,0xc5,0x89,0x6f,0xb7,0x62,0x0e,0xaa,0x18,0xbe,0x1b,
+  0xfc,0x56,0x3e,0x4b,0xc6,0xd2,0x79,0x20,0x9a,0xdb,0xc0,0xfe,0x78,0xcd,0x5a,0xf4,
+  0x1f,0xdd,0xa8,0x33,0x88,0x07,0xc7,0x31,0xb1,0x12,0x10,0x59,0x27,0x80,0xec,0x5f,
+  0x60,0x51,0x7f,0xa9,0x19,0xb5,0x4a,0x0d,0x2d,0xe5,0x7a,0x9f,0x93,0xc9,0x9c,0xef,
+  0xa0,0xe0,0x3b,0x4d,0xae,0x2a,0xf5,0xb0,0xc8,0xeb,0xbb,0x3c,0x83,0x53,0x99,0x61,
+  0x17,0x2b,0x04,0x7e,0xba,0x77,0xd6,0x26,0xe1,0x69,0x14,0x63,0x55,0x21,0x0c,0x7d
+];
+
+const RCON = [[0x01,0,0,0],[0x02,0,0,0],[0x04,0,0,0],[0x08,0,0,0],[0x10,0,0,0],[0x20,0,0,0],[0x40,0,0,0],[0x80,0,0,0],[0x1b,0,0,0],[0x36,0,0,0]];
+
+function gmul(a, b) {
+  let p = 0;
+  for (let i = 0; i < 8; i++) {
+    if (b & 1) p ^= a;
+    const hi = a & 0x80;
+    a = (a << 1) & 0xff;
+    if (hi) a ^= 0x1b;
+    b >>= 1;
+  }
+  return p;
+}
+
+function gmulSteps(a, b) {
+  const steps = [];
+  let p = 0;
+  let curA = a, curB = b;
+  for (let i = 0; i < 8; i++) {
+    const bit = curB & 1;
+    const xored = bit ? (p ^ curA) : p;
+    const step = { i, bit, a: curA, b: curB, p_before: p, p_after: xored, xored: !!bit };
+    p = xored;
+    const hi = curA & 0x80;
+    const shifted = (curA << 1) & 0xff;
+    step.shifted = shifted;
+    step.reduced = hi ? shifted ^ 0x1b : shifted;
+    step.didReduce = !!hi;
+    curA = step.reduced;
+    curB = curB >> 1;
+    steps.push(step);
+  }
+  return { result: p, steps };
+}
+
 function subBytes(s) { return s.map(r => r.map(b => SBOX[b])); }
-function shiftRows(s) { const o = s.map(r => [...r]); [o[1][0],o[1][1],o[1][2],o[1][3]] = [o[1][1],o[1][2],o[1][3],o[1][0]]; [o[2][0],o[2][1],o[2][2],o[2][3]] = [o[2][2],o[2][3],o[2][0],o[2][1]]; [o[3][0],o[3][1],o[3][2],o[3][3]] = [o[3][3],o[3][0],o[3][1],o[3][2]]; return o; }
-function mixColumns(s) { const o = Array.from({length:4}, () => Array(4).fill(0)); for (let c = 0; c < 4; c++) { o[0][c] = gmul(2,s[0][c])^gmul(3,s[1][c])^s[2][c]^s[3][c]; o[1][c] = s[0][c]^gmul(2,s[1][c])^gmul(3,s[2][c])^s[3][c]; o[2][c] = s[0][c]^s[1][c]^gmul(2,s[2][c])^gmul(3,s[3][c]); o[3][c] = gmul(3,s[0][c])^s[1][c]^s[2][c]^gmul(2,s[3][c]); } return o; }
-function addRoundKey(s, rk) { return s.map((r,i) => r.map((b,j) => b ^ rk[i][j])); }
-function keyExpansion(key) { const w = []; for (let i = 0; i < 4; i++) w[i] = [key[0][i], key[1][i], key[2][i], key[3][i]]; for (let i = 4; i < 44; i++) { let t = [...w[i-1]]; if (i % 4 === 0) { t = [t[1],t[2],t[3],t[0]].map(b => SBOX[b]); t = t.map((b,j) => b ^ RCON[i/4-1][j]); } w[i] = w[i-4].map((b,j) => b ^ t[j]); } const rks = []; for (let r = 0; r <= 10; r++) { const rk = Array.from({length:4}, () => Array(4).fill(0)); for (let c = 0; c < 4; c++) for (let row = 0; row < 4; row++) rk[row][c] = w[r*4+c][row]; rks.push(rk); } return rks; }
-function hexToState(hex) { const c = hex.replace(/\s/g,''); if (c.length !== 32 || !/^[0-9a-fA-F]{32}$/.test(c)) return null; const bytes = []; for (let i = 0; i < 32; i += 2) bytes.push(parseInt(c.substr(i,2),16)); const s = Array.from({length:4}, () => Array(4).fill(0)); for (let i = 0; i < 16; i++) s[i%4][Math.floor(i/4)] = bytes[i]; return s; }
-function toHex(b) { return b.toString(16).padStart(2,'0').toUpperCase(); }
-function stateToHexStr(s) { let out = ''; for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) out += toHex(s[r][c]); return out; }
-function aesEncrypt(pt, key) { const rks = keyExpansion(key); const rounds = []; let s = pt.map(r => [...r]); s = addRoundKey(s, rks[0]); rounds.push({ round:0, label:'Initial Round (AddRoundKey)', addRoundKey:s.map(r=>[...r]), roundKey:rks[0] }); for (let r = 1; r <= 9; r++) { const sb = subBytes(s); const sr = shiftRows(sb); const mc = mixColumns(sr); s = addRoundKey(mc, rks[r]); rounds.push({ round:r, label:'Round '+r, subBytes:sb.map(r=>[...r]), shiftRows:sr.map(r=>[...r]), mixColumns:mc.map(r=>[...r]), addRoundKey:s.map(r=>[...r]), roundKey:rks[r] }); } const sb = subBytes(s); const sr = shiftRows(sb); s = addRoundKey(sr, rks[10]); rounds.push({ round:10, label:'Round 10 (Final — No MixColumns)', subBytes:sb.map(r=>[...r]), shiftRows:sr.map(r=>[...r]), addRoundKey:s.map(r=>[...r]), roundKey:rks[10] }); return { ciphertext:s, rounds, roundKeys:rks }; }
+function shiftRows(s) {
+  const o = s.map(r => [...r]);
+  [o[1][0],o[1][1],o[1][2],o[1][3]] = [o[1][1],o[1][2],o[1][3],o[1][0]];
+  [o[2][0],o[2][1],o[2][2],o[2][3]] = [o[2][2],o[2][3],o[2][0],o[2][1]];
+  [o[3][0],o[3][1],o[3][2],o[3][3]] = [o[3][3],o[3][0],o[3][1],o[3][2]];
+  return o;
+}
+function mixColumns(s) {
+  const o = Array.from({length:4}, () => Array(4).fill(0));
+  for (let c = 0; c < 4; c++) {
+    o[0][c] = gmul(2,s[0][c])^gmul(3,s[1][c])^s[2][c]^s[3][c];
+    o[1][c] = s[0][c]^gmul(2,s[1][c])^gmul(3,s[2][c])^s[3][c];
+    o[2][c] = s[0][c]^s[1][c]^gmul(2,s[2][c])^gmul(3,s[3][c]);
+    o[3][c] = gmul(3,s[0][c])^s[1][c]^s[2][c]^gmul(2,s[3][c]);
+  }
+  return o;
+}
 
-function renderMatrix(data, label, labelClass, highlight) { const cells = data.flat().map(b => `<div class="cell">${toHex(b)}</div>`).join(''); return `<div class="matrix-wrap">${label ? `<div class="matrix-label ${labelClass||''}">${label}</div>` : ''}<div class="matrix${highlight?' highlight':''}">${cells}</div></div>`; }
+function invSubBytes(s) { return s.map(r => r.map(b => INV_SBOX[b])); }
+function invShiftRows(s) {
+  const o = s.map(r => [...r]);
+  [o[1][0],o[1][1],o[1][2],o[1][3]] = [o[1][3],o[1][0],o[1][1],o[1][2]];
+  [o[2][0],o[2][1],o[2][2],o[2][3]] = [o[2][2],o[2][3],o[2][0],o[2][1]];
+  [o[3][0],o[3][1],o[3][2],o[3][3]] = [o[3][1],o[3][2],o[3][3],o[3][0]];
+  return o;
+}
+function invMixColumns(s) {
+  const o = Array.from({length:4}, () => Array(4).fill(0));
+  for (let c = 0; c < 4; c++) {
+    o[0][c] = gmul(0x0e,s[0][c])^gmul(0x0b,s[1][c])^gmul(0x0d,s[2][c])^gmul(0x09,s[3][c]);
+    o[1][c] = gmul(0x09,s[0][c])^gmul(0x0e,s[1][c])^gmul(0x0b,s[2][c])^gmul(0x0d,s[3][c]);
+    o[2][c] = gmul(0x0d,s[0][c])^gmul(0x09,s[1][c])^gmul(0x0e,s[2][c])^gmul(0x0b,s[3][c]);
+    o[3][c] = gmul(0x0b,s[0][c])^gmul(0x0d,s[1][c])^gmul(0x09,s[2][c])^gmul(0x0e,s[3][c]);
+  }
+  return o;
+}
+
+function addRoundKey(s, rk) { return s.map((r,i) => r.map((b,j) => b ^ rk[i][j])); }
+
+function keyExpansion(key) {
+  const w = [];
+  for (let i = 0; i < 4; i++) w[i] = [key[0][i], key[1][i], key[2][i], key[3][i]];
+  for (let i = 4; i < 44; i++) {
+    let t = [...w[i-1]];
+    if (i % 4 === 0) {
+      t = [t[1],t[2],t[3],t[0]].map(b => SBOX[b]);
+      t = t.map((b,j) => b ^ RCON[i/4-1][j]);
+    }
+    w[i] = w[i-4].map((b,j) => b ^ t[j]);
+  }
+  const rks = [];
+  for (let r = 0; r <= 10; r++) {
+    const rk = Array.from({length:4}, () => Array(4).fill(0));
+    for (let c = 0; c < 4; c++) for (let row = 0; row < 4; row++) rk[row][c] = w[r*4+c][row];
+    rks.push(rk);
+  }
+  return rks;
+}
+
+function hexToState(hex) {
+  const c = hex.replace(/\s/g,'');
+  if (c.length !== 32 || !/^[0-9a-fA-F]{32}$/.test(c)) return null;
+  const bytes = [];
+  for (let i = 0; i < 32; i += 2) bytes.push(parseInt(c.substr(i,2),16));
+  const s = Array.from({length:4}, () => Array(4).fill(0));
+  for (let i = 0; i < 16; i++) s[i%4][Math.floor(i/4)] = bytes[i];
+  return s;
+}
+function toHex(b) { return b.toString(16).padStart(2,'0').toUpperCase(); }
+function stateToHex(s) {
+  let out = '';
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) out += toHex(s[r][c]);
+  return out;
+}
+function stateToBytes(s) {
+  const bytes = [];
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) bytes.push(s[r][c]);
+  return bytes;
+}
+
+function aesEncrypt(pt, key) {
+  const rks = keyExpansion(key);
+  const rounds = [];
+  let s = pt.map(r => [...r]);
+  s = addRoundKey(s, rks[0]);
+  rounds.push({ round:0, label:'Initial', addRoundKey:s.map(r=>[...r]), roundKey:rks[0] });
+  for (let r = 1; r <= 9; r++) {
+    const sb = subBytes(s);
+    const sr = shiftRows(sb);
+    const mc = mixColumns(sr);
+    s = addRoundKey(mc, rks[r]);
+    rounds.push({ round:r, label:'Round '+r, subBytes:sb.map(r=>[...r]), shiftRows:sr.map(r=>[...r]),
+      mixColumns:mc.map(r=>[...r]), addRoundKey:s.map(r=>[...r]), roundKey:rks[r] });
+  }
+  const sb = subBytes(s);
+  const sr = shiftRows(sb);
+  s = addRoundKey(sr, rks[10]);
+  rounds.push({ round:10, label:'Round 10 (final)', subBytes:sb.map(r=>[...r]),
+    shiftRows:sr.map(r=>[...r]), addRoundKey:s.map(r=>[...r]), roundKey:rks[10] });
+  return { ciphertext:s, rounds, roundKeys:rks };
+}
+
+function aesDecrypt(ct, key) {
+  const rks = keyExpansion(key);
+  const rounds = [];
+  let s = ct.map(r => [...r]);
+  s = addRoundKey(s, rks[10]);
+  rounds.push({ round:0, label:'Initial (AddRoundKey RK10)', addRoundKey:s.map(r=>[...r]), roundKey:rks[10] });
+  for (let r = 1; r <= 9; r++) {
+    const isr = invShiftRows(s);
+    const isb = invSubBytes(isr);
+    const ark = addRoundKey(isb, rks[10 - r]);
+    const imc = invMixColumns(ark);
+    s = imc;
+    rounds.push({
+      round: r,
+      label: 'Round ' + r,
+      invShiftRows: isr.map(r=>[...r]),
+      invSubBytes: isb.map(r=>[...r]),
+      addRoundKey: ark.map(r=>[...r]),
+      invMixColumns: imc.map(r=>[...r]),
+      roundKey: rks[10 - r]
+    });
+  }
+  const isr = invShiftRows(s);
+  const isb = invSubBytes(isr);
+  s = addRoundKey(isb, rks[0]);
+  rounds.push({
+    round: 10,
+    label: 'Round 10 (final)',
+    invShiftRows: isr.map(r=>[...r]),
+    invSubBytes: isb.map(r=>[...r]),
+    addRoundKey: s.map(r=>[...r]),
+    roundKey: rks[0]
+  });
+  return { plaintext: s, rounds, roundKeys: rks };
+}
+
+function bitsDiff(a, b) {
+  let count = 0;
+  for (let i = 0; i < 16; i++) {
+    let x = a[i] ^ b[i];
+    while (x) { count += x & 1; x >>= 1; }
+  }
+  return count;
+}
+
+function renderMatrix(data, label, cls, highlight, diffData) {
+  let cells = '';
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      const isDiff = diffData && data[r][c] !== diffData[r][c];
+      cells += `<div class="cell${isDiff?' diff':''}">${toHex(data[r][c])}</div>`;
+    }
+  }
+  return `<div class="matrix-wrap ${cls||''}">
+    ${label ? `<div class="matrix-title">${label}</div>` : ''}
+    <div class="matrix${highlight?' highlight':''}">${cells}</div>
+  </div>`;
+}
+
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.tab;
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t === tab));
+    document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === 'section-' + target));
+    if (target === 'sbox' && !sboxInitialized) initSbox();
+    if (target === 'galois' && !galoisInitialized) initGalois();
+    if (target === 'avalanche' && !avaInitialized) initAvalanche();
+    if (target === 'quiz' && !quizInitialized) initQuiz();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
 
 const msgInput = document.getElementById('msgInput');
 const keyInput = document.getElementById('keyInput');
 const msgCount = document.getElementById('msgCount');
 const keyCount = document.getElementById('keyCount');
 const errorBox = document.getElementById('errorBox');
-const output = document.getElementById('output');
+const cipherOutput = document.getElementById('cipherOutput');
 const encryptBtn = document.getElementById('encryptBtn');
+const animateBtn = document.getElementById('animateBtn');
 const keysBtn = document.getElementById('keysBtn');
+const speedSlider = document.getElementById('speedSlider');
+const speedLabel = document.getElementById('speedLabel');
 
+let mode = 'encrypt';
 let currentResult = null;
 let showKeys = false;
 let openRound = null;
 
-function updateCount(input, counter) { const len = input.value.length; counter.textContent = `${len} / 32`; counter.className = 'char-count ' + (len === 32 ? 'ok' : len > 0 ? 'bad' : ''); }
+const SPEEDS = [0.5, 1, 2, 4];
+const SPEED_LABELS = ['0.5×', '1×', '2×', '4×'];
+
+function setMode(newMode) {
+  stopAnimation();
+  mode = newMode;
+  const isEnc = mode === 'encrypt';
+  document.getElementById('modeIndicator').classList.toggle('decrypt', !isEnc);
+  document.getElementById('modeEncBtn').classList.toggle('active', isEnc);
+  document.getElementById('modeDecBtn').classList.toggle('active', !isEnc);
+  encryptBtn.classList.toggle('decrypt', !isEnc);
+  document.getElementById('encryptBtnText').textContent = isEnc ? 'Encrypt' : 'Decrypt';
+  document.getElementById('inputLabel1').textContent = isEnc ? 'Plaintext (32 hex chars)' : 'Ciphertext (32 hex chars)';
+  document.getElementById('cipherHeading').innerHTML = isEnc
+    ? 'Encrypt a block, <em>watch every round.</em>'
+    : 'Decrypt a block, <em>unwind the cipher.</em>';
+  document.getElementById('cipherLede').innerHTML = isEnc
+    ? 'Enter a 128-bit plaintext and key in hexadecimal. The cipher computes each of the ten AES rounds, expanding the key into eleven round keys and showing every intermediate state as a 4 × 4 byte matrix. Hit <strong>Animate</strong> to watch the transformations play out step by step.'
+    : 'Enter a 128-bit ciphertext and key in hexadecimal. Decryption applies the inverse operations, <strong>InvSubBytes</strong>, <strong>InvShiftRows</strong>, <strong>InvMixColumns</strong>, with round keys in reverse order. The result is the original plaintext.';
+  msgInput.value = isEnc ? '3243f6a8885a308d313198a2e0370734' : '3925841d02dc09fbdc118597196a0b32';
+  keyInput.value = '2b7e151628aed2a6abf7158809cf4f3c';
+  updateCount(msgInput, msgCount);
+  updateCount(keyInput, keyCount);
+  openRound = 0;
+  runCipher();
+  renderCipher();
+}
+
+document.getElementById('modeEncBtn').addEventListener('click', () => setMode('encrypt'));
+document.getElementById('modeDecBtn').addEventListener('click', () => setMode('decrypt'));
+
+function updateCount(input, counter) {
+  const len = input.value.length;
+  counter.textContent = `${len} / 32`;
+  counter.className = 'char-count ' + (len === 32 ? 'ok' : len > 0 ? 'bad' : '');
+}
 function filterHex(e) { e.target.value = e.target.value.replace(/[^0-9a-fA-F]/g,'').slice(0,32); }
-msgInput.addEventListener('input', function(e) { filterHex(e); updateCount(msgInput, msgCount); });
-keyInput.addEventListener('input', function(e) { filterHex(e); updateCount(keyInput, keyCount); });
+msgInput.addEventListener('input', e => { filterHex(e); updateCount(msgInput, msgCount); });
+keyInput.addEventListener('input', e => { filterHex(e); updateCount(keyInput, keyCount); });
 msgInput.value = '3243f6a8885a308d313198a2e0370734';
 keyInput.value = '2b7e151628aed2a6abf7158809cf4f3c';
 updateCount(msgInput, msgCount);
 updateCount(keyInput, keyCount);
 
-encryptBtn.addEventListener('click', function() {
+speedSlider.addEventListener('input', () => {
+  speedLabel.textContent = SPEED_LABELS[speedSlider.value];
+});
+
+function runCipher() {
   const msg = hexToState(msgInput.value);
   const key = hexToState(keyInput.value);
-  if (!msg || !key) { errorBox.textContent = 'Both Plaintext and Key must be exactly 32 valid hex characters.'; errorBox.style.display = 'block'; currentResult = null; output.innerHTML = ''; return; }
+  if (!msg || !key) {
+    errorBox.textContent = 'Both inputs must be exactly 32 valid hex characters.';
+    errorBox.style.display = 'block';
+    currentResult = null; cipherOutput.innerHTML = '';
+    return null;
+  }
   errorBox.style.display = 'none';
-  currentResult = aesEncrypt(msg, key);
-  openRound = null;
-  renderOutput();
-});
-keysBtn.addEventListener('click', function() { showKeys = !showKeys; keysBtn.textContent = (showKeys ? 'Hide' : 'Show') + ' Key Schedule'; keysBtn.classList.toggle('active', showKeys); renderOutput(); });
+  currentResult = mode === 'encrypt' ? aesEncrypt(msg, key) : aesDecrypt(msg, key);
+  return currentResult;
+}
 
-function renderOutput() {
-  if (!currentResult) { output.innerHTML = ''; return; }
+encryptBtn.addEventListener('click', () => {
+  stopAnimation();
+  runCipher();
+  openRound = null;
+  renderCipher();
+});
+
+keysBtn.addEventListener('click', () => {
+  showKeys = !showKeys;
+  keysBtn.textContent = (showKeys ? 'Hide' : 'Show') + ' Key Schedule';
+  keysBtn.classList.toggle('active', showKeys);
+  if (currentResult) renderCipher();
+});
+
+function renderCipher() {
+  if (!currentResult) { cipherOutput.innerHTML = ''; return; }
   const r = currentResult;
+  const isDecrypt = mode === 'decrypt';
+  const output = isDecrypt ? r.plaintext : r.ciphertext;
+  const outputLabel = isDecrypt ? 'Recovered plaintext' : 'Ciphertext';
   let html = '';
-  html += `<div class="result-card cipher"><div class="section-label">Ciphertext</div><div style="display:flex; flex-wrap:wrap; align-items:flex-start; gap:16px;">${renderMatrix(r.ciphertext, 'State Matrix', 'result', true)}<div style="flex:1; min-width:200px; display:flex; align-items:center;"><div><div class="matrix-label result" style="margin-bottom:6px">Hex Output</div><div class="cipher-hex">${stateToHexStr(r.ciphertext)}</div></div></div></div></div>`;
-  if (showKeys) { html += `<div class="result-card"><div class="section-label">Key Expansion — Round Keys 0 through 10</div><div class="keys-grid">${r.roundKeys.map((rk,i) => renderMatrix(rk, 'RK '+i, 'key', false)).join('')}</div></div>`; }
-  html += `<div class="section-label" style="margin-bottom:10px; margin-top:8px;">Round-by-Round Details</div>`;
+
+  html += `<div class="card accent" style="margin-bottom: 20px;">
+    <div class="card-header">
+      <div class="label" style="color: ${isDecrypt ? 'var(--teal)' : 'var(--accent)'};">${outputLabel}</div>
+      <div class="label">128 bits / 16 bytes</div>
+    </div>
+    <div class="cipher-hero">
+      ${renderMatrix(output, 'State', isDecrypt ? 'mix' : 'result', true)}
+      <div>
+        <div class="label" style="color: ${isDecrypt ? 'var(--teal)' : 'var(--accent)'}; margin-bottom:8px;">Hex output</div>
+        <div class="cipher-hex ${isDecrypt ? 'decrypt-mode' : ''}">${stateToHex(output)}</div>
+      </div>
+    </div>
+  </div>`;
+
+  if (showKeys) {
+    html += `<div class="card" style="margin-bottom: 20px;">
+      <div class="card-header"><div class="label" style="color: var(--amber);">Key Expansion · Round Keys 0 – 10 ${isDecrypt ? '(applied in reverse: RK10 first, RK0 last)' : ''}</div></div>
+      <div class="keys-grid">
+        ${r.roundKeys.map((rk, i) => renderMatrix(rk, 'RK ' + i, 'key', false)).join('')}
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="label" style="margin: 18px 0 10px;">Round-by-round inspection</div>`;
   r.rounds.forEach((rd, idx) => {
     const isOpen = openRound === idx;
-    html += `<div class="round-item${isOpen?' open':''}" id="round-${idx}"><div class="round-header" onclick="toggleRound(${idx})"><span class="round-name">${rd.label}</span><span class="arrow">▾</span></div>${isOpen ? `<div class="round-body">${rd.subBytes ? renderMatrix(rd.subBytes, 'SubBytes', 'sub', false) : ''}${rd.shiftRows ? renderMatrix(rd.shiftRows, 'ShiftRows', 'shift', false) : ''}${rd.mixColumns ? renderMatrix(rd.mixColumns, 'MixColumns', 'mix', false) : ''}${renderMatrix(rd.roundKey, 'Round Key', 'key', false)}${renderMatrix(rd.addRoundKey, 'After AddRoundKey', 'result', true)}</div>` : ''}</div>`;
+    html += `<div class="round-panel${isOpen ? ' open' : ''}" id="round-${idx}">
+      <div class="round-head" onclick="toggleRound(${idx})">
+        <span class="round-name"><span class="round-num">${String(rd.round).padStart(2, '0')}</span>${rd.label}</span>
+        <span class="arrow">▸</span>
+      </div>
+      ${isOpen ? `<div class="round-body">
+        ${isDecrypt ? `
+          ${rd.invShiftRows ? renderMatrix(rd.invShiftRows, 'InvShiftRows', 'shift', false) : ''}
+          ${rd.invSubBytes ? renderMatrix(rd.invSubBytes, 'InvSubBytes', 'sub', false) : ''}
+          ${renderMatrix(rd.roundKey, 'Round Key', 'key', false)}
+          ${renderMatrix(rd.addRoundKey, 'AddRoundKey', 'result', !rd.invMixColumns)}
+          ${rd.invMixColumns ? renderMatrix(rd.invMixColumns, 'InvMixColumns', 'mix', true) : ''}
+        ` : `
+          ${rd.subBytes ? renderMatrix(rd.subBytes, 'SubBytes', 'sub', false) : ''}
+          ${rd.shiftRows ? renderMatrix(rd.shiftRows, 'ShiftRows', 'shift', false) : ''}
+          ${rd.mixColumns ? renderMatrix(rd.mixColumns, 'MixColumns', 'mix', false) : ''}
+          ${renderMatrix(rd.roundKey, 'Round Key', 'key', false)}
+          ${renderMatrix(rd.addRoundKey, 'AddRoundKey', 'result', true)}
+        `}
+      </div>` : ''}
+    </div>`;
   });
-  output.innerHTML = html;
-}
-function toggleRound(idx) { openRound = openRound === idx ? null : idx; renderOutput(); }
 
-// ═══ CHATBOT ═══
+  cipherOutput.innerHTML = html;
+}
+function toggleRound(idx) { openRound = openRound === idx ? null : idx; renderCipher(); }
+
+const animBar = document.getElementById('animBar');
+const animFill = document.getElementById('animFill');
+const animStatus = document.getElementById('animStatus');
+const animPlay = document.getElementById('animPlay');
+const animPrev = document.getElementById('animPrev');
+const animNext = document.getElementById('animNext');
+const animStop = document.getElementById('animStop');
+const playIcon = document.getElementById('playIcon');
+const pauseIcon = document.getElementById('pauseIcon');
+
+let animSteps = [];
+let animIndex = 0;
+let animPlaying = false;
+let animTimer = null;
+
+function buildAnimSteps(result) {
+  const steps = [];
+  const r = result.rounds;
+  if (mode === 'encrypt') {
+    steps.push({ idx: 0, title: 'Round 0 · AddRoundKey (initial)', state: r[0].addRoundKey, cls: 'result' });
+    for (let i = 1; i <= 9; i++) {
+      steps.push({ idx: i, title: 'Round '+i+' · SubBytes', state: r[i].subBytes, cls: 'sub' });
+      steps.push({ idx: i, title: 'Round '+i+' · ShiftRows', state: r[i].shiftRows, cls: 'shift' });
+      steps.push({ idx: i, title: 'Round '+i+' · MixColumns', state: r[i].mixColumns, cls: 'mix' });
+      steps.push({ idx: i, title: 'Round '+i+' · AddRoundKey', state: r[i].addRoundKey, cls: 'result' });
+    }
+    steps.push({ idx: 10, title: 'Round 10 · SubBytes', state: r[10].subBytes, cls: 'sub' });
+    steps.push({ idx: 10, title: 'Round 10 · ShiftRows', state: r[10].shiftRows, cls: 'shift' });
+    steps.push({ idx: 10, title: 'Round 10 · AddRoundKey (final)', state: r[10].addRoundKey, cls: 'result' });
+  } else {
+    steps.push({ idx: 0, title: 'Round 0 · AddRoundKey (RK10)', state: r[0].addRoundKey, cls: 'result' });
+    for (let i = 1; i <= 9; i++) {
+      steps.push({ idx: i, title: 'Round '+i+' · InvShiftRows', state: r[i].invShiftRows, cls: 'shift' });
+      steps.push({ idx: i, title: 'Round '+i+' · InvSubBytes', state: r[i].invSubBytes, cls: 'sub' });
+      steps.push({ idx: i, title: 'Round '+i+' · AddRoundKey', state: r[i].addRoundKey, cls: 'result' });
+      steps.push({ idx: i, title: 'Round '+i+' · InvMixColumns', state: r[i].invMixColumns, cls: 'mix' });
+    }
+    steps.push({ idx: 10, title: 'Round 10 · InvShiftRows', state: r[10].invShiftRows, cls: 'shift' });
+    steps.push({ idx: 10, title: 'Round 10 · InvSubBytes', state: r[10].invSubBytes, cls: 'sub' });
+    steps.push({ idx: 10, title: 'Round 10 · AddRoundKey (final)', state: r[10].addRoundKey, cls: 'result' });
+  }
+  return steps;
+}
+
+animateBtn.addEventListener('click', () => {
+  const res = runCipher();
+  if (!res) return;
+  animSteps = buildAnimSteps(res);
+  animIndex = 0;
+  animBar.style.display = 'flex';
+  renderAnimFrame(true);
+  startAnim();
+});
+
+animPlay.addEventListener('click', () => animPlaying ? pauseAnim() : startAnim());
+animPrev.addEventListener('click', () => { pauseAnim(); if (animIndex > 0) animIndex--; renderAnimFrame(); });
+animNext.addEventListener('click', () => { pauseAnim(); if (animIndex < animSteps.length - 1) animIndex++; renderAnimFrame(); });
+animStop.addEventListener('click', () => stopAnimation());
+
+function startAnim() {
+  animPlaying = true;
+  playIcon.style.display = 'none';
+  pauseIcon.style.display = 'block';
+  scheduleNext();
+}
+function pauseAnim() {
+  animPlaying = false;
+  playIcon.style.display = 'block';
+  pauseIcon.style.display = 'none';
+  if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+}
+function stopAnimation() {
+  pauseAnim();
+  animSteps = [];
+  animIndex = 0;
+  animBar.style.display = 'none';
+}
+function scheduleNext() {
+  if (!animPlaying) return;
+  const speed = SPEEDS[speedSlider.value];
+  const delay = 900 / speed;
+  animTimer = setTimeout(() => {
+    if (animIndex < animSteps.length - 1) {
+      animIndex++;
+      renderAnimFrame();
+      scheduleNext();
+    } else {
+      pauseAnim();
+      animStatus.textContent = 'Complete';
+    }
+  }, delay);
+}
+
+function renderAnimFrame(initial) {
+  if (!animSteps.length || !currentResult) return;
+  const step = animSteps[animIndex];
+  const pct = ((animIndex + 1) / animSteps.length) * 100;
+  animFill.style.width = pct + '%';
+  animStatus.textContent = step.title;
+
+  const prevState = animIndex > 0 ? animSteps[animIndex - 1].state : null;
+  openRound = step.idx;
+
+  let html = `<div class="card accent" style="margin-bottom:20px;">
+    <div class="card-header">
+      <div class="label" style="color: var(--accent);">Current step</div>
+      <div class="label">${animIndex + 1} / ${animSteps.length}</div>
+    </div>
+    <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
+      ${renderMatrixWithDiff(step.state, step.title, step.cls, true, prevState)}
+      <div style="flex:1; min-width: 200px;">
+        <div class="label" style="color:var(--accent); margin-bottom:4px;">${step.title}</div>
+        <div style="font-family:var(--display); font-style:italic; font-size:24px; color:var(--text-bright); line-height:1.3; letter-spacing: -0.3px;">
+          ${getStepDescription(step)}
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  const r = currentResult;
+  const isDecrypt = mode === 'decrypt';
+  r.rounds.forEach((rd, idx) => {
+    const isOpen = idx === step.idx;
+    html += `<div class="round-panel${isOpen ? ' open current' : ''}">
+      <div class="round-head" onclick="pauseAnim(); animIndex = findFirstStepForRound(${idx}); renderAnimFrame();">
+        <span class="round-name"><span class="round-num">${String(rd.round).padStart(2, '0')}</span>${rd.label}</span>
+        <span class="arrow">▸</span>
+      </div>
+      ${isOpen ? `<div class="round-body">
+        ${isDecrypt ? `
+          ${rd.invShiftRows ? renderMatrix(rd.invShiftRows, 'InvShiftRows', 'shift', false) : ''}
+          ${rd.invSubBytes ? renderMatrix(rd.invSubBytes, 'InvSubBytes', 'sub', false) : ''}
+          ${renderMatrix(rd.roundKey, 'Round Key', 'key', false)}
+          ${renderMatrix(rd.addRoundKey, 'AddRoundKey', 'result', !rd.invMixColumns)}
+          ${rd.invMixColumns ? renderMatrix(rd.invMixColumns, 'InvMixColumns', 'mix', true) : ''}
+        ` : `
+          ${rd.subBytes ? renderMatrix(rd.subBytes, 'SubBytes', 'sub', false) : ''}
+          ${rd.shiftRows ? renderMatrix(rd.shiftRows, 'ShiftRows', 'shift', false) : ''}
+          ${rd.mixColumns ? renderMatrix(rd.mixColumns, 'MixColumns', 'mix', false) : ''}
+          ${renderMatrix(rd.roundKey, 'Round Key', 'key', false)}
+          ${renderMatrix(rd.addRoundKey, 'AddRoundKey', 'result', true)}
+        `}
+      </div>` : ''}
+    </div>`;
+  });
+  cipherOutput.innerHTML = html;
+}
+
+function renderMatrixWithDiff(data, label, cls, highlight, prev) {
+  let cells = '';
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      const changed = prev && data[r][c] !== prev[r][c];
+      cells += `<div class="cell${changed?' diff':''}">${toHex(data[r][c])}</div>`;
+    }
+  }
+  return `<div class="matrix-wrap ${cls||''}">
+    ${label ? `<div class="matrix-title">${label}</div>` : ''}
+    <div class="matrix${highlight?' highlight':''}">${cells}</div>
+  </div>`;
+}
+
+function findFirstStepForRound(roundIdx) {
+  for (let i = 0; i < animSteps.length; i++) if (animSteps[i].idx === roundIdx) return i;
+  return 0;
+}
+
+function getStepDescription(step) {
+  const title = step.title.toLowerCase();
+  if (title.includes('invsubbytes')) return 'Every byte replaced via the inverse S-Box.';
+  if (title.includes('invshiftrows')) return 'Rows shifted cyclically to the right, undoing ShiftRows.';
+  if (title.includes('invmixcolumns')) return 'Columns mixed by the inverse matrix.';
+  if (title.includes('subbytes')) return 'Every byte replaced via the S-Box.';
+  if (title.includes('shiftrows')) return 'Rows shifted cyclically to the left.';
+  if (title.includes('mixcolumns')) return 'Columns mixed via GF(2⁸) matrix multiply.';
+  if (title.includes('initial') || title.includes('rk10')) return mode === 'encrypt' ? 'Plaintext XORed with round key zero.' : 'Ciphertext XORed with the final round key.';
+  if (title.includes('final')) return mode === 'encrypt' ? 'Final XOR, ciphertext ready.' : 'Final XOR with RK0, plaintext recovered.';
+  if (title.includes('addroundkey')) return 'State XORed with the round key.';
+  return '';
+}
+
+let sboxInitialized = false;
+let sboxForward = true;
+
+function initSbox() {
+  sboxInitialized = true;
+  document.querySelectorAll('.sbox-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sboxForward = btn.dataset.sbox === 'forward';
+      document.querySelectorAll('.sbox-tab').forEach(b => b.classList.toggle('active', b === btn));
+      document.getElementById('sboxLabel').textContent = sboxForward
+        ? 'S-Box (rows = upper nibble, cols = lower nibble)'
+        : 'Inverse S-Box (rows = upper nibble, cols = lower nibble)';
+      renderSboxGrid();
+      sboxInspect(parseInt(document.getElementById('sboxIn').textContent, 16) || 0x53);
+    });
+  });
+  renderSboxGrid();
+  document.getElementById('sboxTry').addEventListener('input', (e) => {
+    const v = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 2);
+    e.target.value = v;
+    if (v.length === 2) sboxInspect(parseInt(v, 16));
+  });
+  sboxInspect(0x53);
+}
+
+function renderSboxGrid() {
+  const grid = document.getElementById('sboxGrid');
+  const table = sboxForward ? SBOX : INV_SBOX;
+  let html = '<div class="hdr corner"></div>';
+  for (let c = 0; c < 16; c++) html += `<div class="hdr" data-col="${c}">${c.toString(16).toUpperCase()}</div>`;
+  for (let r = 0; r < 16; r++) {
+    html += `<div class="hdr" data-row="${r}">${r.toString(16).toUpperCase()}</div>`;
+    for (let c = 0; c < 16; c++) {
+      const idx = r * 16 + c;
+      html += `<div class="sbox-cell" data-idx="${idx}" data-row="${r}" data-col="${c}">${toHex(table[idx])}</div>`;
+    }
+  }
+  grid.innerHTML = html;
+
+  grid.querySelectorAll('.sbox-cell').forEach(cell => {
+    cell.addEventListener('mouseenter', () => sboxInspect(+cell.dataset.idx));
+    cell.addEventListener('click', () => {
+      sboxInspect(+cell.dataset.idx);
+      document.getElementById('sboxTry').value = toHex(+cell.dataset.idx);
+    });
+  });
+}
+
+function sboxInspect(idx) {
+  const table = sboxForward ? SBOX : INV_SBOX;
+  const out = table[idx];
+  const r = (idx >> 4) & 0xf, c = idx & 0xf;
+  document.getElementById('sboxIn').textContent = toHex(idx);
+  document.getElementById('sboxOut').textContent = toHex(out);
+  const binIn = idx.toString(2).padStart(8, '0');
+  const binOut = out.toString(2).padStart(8, '0');
+  document.getElementById('sboxBin').innerHTML = `
+    <div style="margin-bottom:6px;">${binIn.split('').map(b => `<span class="${b==='1'?'bit-on':''}">${b}</span>`).join(' ')} <span style="color:var(--text-muted); margin: 0 8px;">↓</span></div>
+    <div>${binOut.split('').map(b => `<span class="${b==='1'?'bit-on':''}">${b}</span>`).join(' ')}</div>
+  `;
+
+  document.querySelectorAll('.sbox-cell').forEach(c => {
+    c.classList.remove('highlight-row', 'highlight-col', 'highlight-cell');
+  });
+  document.querySelectorAll('.sbox-grid .hdr').forEach(h => h.classList.remove('highlight'));
+  document.querySelectorAll(`.sbox-cell[data-row="${r}"]`).forEach(c => c.classList.add('highlight-row'));
+  document.querySelectorAll(`.sbox-cell[data-col="${c}"]`).forEach(c => c.classList.add('highlight-col'));
+  const targetCell = document.querySelector(`.sbox-cell[data-idx="${idx}"]`);
+  if (targetCell) targetCell.classList.add('highlight-cell');
+  document.querySelector(`.sbox-grid .hdr[data-row="${r}"]`)?.classList.add('highlight');
+  document.querySelector(`.sbox-grid .hdr[data-col="${c}"]`)?.classList.add('highlight');
+}
+function sboxRandom() {
+  const v = Math.floor(Math.random() * 256);
+  document.getElementById('sboxTry').value = toHex(v);
+  sboxInspect(v);
+}
+
+let galoisInitialized = false;
+function initGalois() {
+  galoisInitialized = true;
+  ['gfA', 'gfB'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 2).toUpperCase();
+      gfCompute();
+    });
+  });
+  gfCompute();
+}
+
+function gfCompute() {
+  const a = parseInt(document.getElementById('gfA').value || '0', 16);
+  const b = parseInt(document.getElementById('gfB').value || '0', 16);
+  const { result, steps } = gmulSteps(a, b);
+  document.getElementById('gfRes').textContent = toHex(result);
+
+  let html = `<div class="gf-step" style="background:var(--bg-3); font-weight:700;">
+    <div class="step-i">i</div>
+    <div class="step-note">Action</div>
+    <div class="step-val">A (current)</div>
+    <div class="step-val" style="text-align:right;">Running XOR</div>
+  </div>`;
+  steps.forEach((s, i) => {
+    html += `<div class="gf-step">
+      <div class="step-i">${i}</div>
+      <div class="step-note">B bit ${i} = ${s.bit}${s.bit ? ' → XOR with A' : ' → skip'}</div>
+      <div class="step-val ${s.xored?'active':''}">${toHex(s.a)}</div>
+      <div class="step-val" style="text-align:right;">${toHex(s.p_after)}</div>
+    </div>`;
+    if (s.didReduce && i < 7) {
+      html += `<div class="gf-step reduce">
+        <div class="step-i">·</div>
+        <div class="step-note">A shifted left, overflow → reduce mod 0x11B (XOR 0x1B)</div>
+        <div class="step-val">${toHex(s.reduced)}</div>
+        <div class="step-val" style="text-align:right; color:var(--text-muted);">—</div>
+      </div>`;
+    } else if (i < 7) {
+      html += `<div class="gf-step" style="opacity:0.55;">
+        <div class="step-i">·</div>
+        <div class="step-note">A shifted left (no overflow)</div>
+        <div class="step-val">${toHex(s.reduced)}</div>
+        <div class="step-val" style="text-align:right; color:var(--text-muted);">—</div>
+      </div>`;
+    }
+  });
+  html += `<div class="gf-step" style="background: var(--teal-soft); font-weight:700;">
+    <div class="step-i" style="color: var(--teal);">✓</div>
+    <div class="step-note" style="color: var(--teal); font-weight:700;">Final result</div>
+    <div class="step-val">—</div>
+    <div class="step-val" style="text-align:right; color: var(--teal); font-size:16px;">${toHex(result)}</div>
+  </div>`;
+  document.getElementById('gfSteps').innerHTML = html;
+}
+
+function gfSet(a, b) {
+  document.getElementById('gfA').value = a;
+  document.getElementById('gfB').value = b;
+  gfCompute();
+}
+function gfRandom() {
+  const a = Math.floor(Math.random() * 256);
+  const b = Math.floor(Math.random() * 256);
+  gfSet(toHex(a), toHex(b));
+}
+
+let avaInitialized = false;
+function initAvalanche() {
+  avaInitialized = true;
+  renderAvaFlippers();
+  document.getElementById('avaA').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 32);
+    renderAvaFlippers();
+  });
+  document.getElementById('avaB').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 32);
+    renderAvaFlippers();
+  });
+  document.getElementById('avaKey').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 32);
+  });
+  document.getElementById('avaRun').addEventListener('click', runAvalanche);
+  document.getElementById('avaCopy').addEventListener('click', () => {
+    document.getElementById('avaB').value = document.getElementById('avaA').value;
+    renderAvaFlippers();
+  });
+  document.getElementById('avaFlipRandom').addEventListener('click', () => {
+    const aVal = document.getElementById('avaA').value;
+    if (aVal.length !== 32) return;
+    const bytes = [];
+    for (let i = 0; i < 32; i += 2) bytes.push(parseInt(aVal.substr(i,2), 16));
+    const byteIdx = Math.floor(Math.random() * 16);
+    const bitIdx = Math.floor(Math.random() * 8);
+    bytes[byteIdx] ^= (1 << bitIdx);
+    document.getElementById('avaB').value = bytes.map(b => toHex(b)).join('').toLowerCase();
+    renderAvaFlippers();
+  });
+  runAvalanche();
+}
+
+function renderAvaFlippers() {
+  renderFlipRow('avaAFlip', 'avaA', document.getElementById('avaA').value);
+  renderFlipRow('avaBFlip', 'avaB', document.getElementById('avaB').value);
+}
+
+function renderFlipRow(containerId, inputId, val) {
+  if (val.length !== 32) { document.getElementById(containerId).innerHTML = ''; return; }
+  const bytes = [];
+  for (let i = 0; i < 32; i += 2) bytes.push(parseInt(val.substr(i,2), 16));
+  let html = '<span style="font-family:var(--mono); font-size:9px; color:var(--text-muted); letter-spacing:1px; margin-right:6px; align-self:center; font-weight:700;">FLIP BYTE:</span>';
+  bytes.forEach((b, i) => {
+    html += `<button class="bit-flip-btn" onclick="flipByte('${inputId}', ${i})">${toHex(b)}</button>`;
+  });
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function flipByte(inputId, byteIdx) {
+  const input = document.getElementById(inputId);
+  const val = input.value;
+  if (val.length !== 32) return;
+  const bytes = [];
+  for (let i = 0; i < 32; i += 2) bytes.push(parseInt(val.substr(i,2), 16));
+  bytes[byteIdx] ^= 0x80;
+  input.value = bytes.map(b => toHex(b)).join('').toLowerCase();
+  renderAvaFlippers();
+}
+
+function runAvalanche() {
+  const a = hexToState(document.getElementById('avaA').value);
+  const b = hexToState(document.getElementById('avaB').value);
+  const k = hexToState(document.getElementById('avaKey').value);
+  if (!a || !b || !k) {
+    document.getElementById('avaResults').innerHTML = '<div class="error-msg">All three inputs must be exactly 32 valid hex characters.</div>';
+    return;
+  }
+  const resA = aesEncrypt(a, k);
+  const resB = aesEncrypt(b, k);
+  const diffs = resA.rounds.map((rd, i) => bitsDiff(stateToBytes(rd.addRoundKey), stateToBytes(resB.rounds[i].addRoundKey)));
+  const initDiff = bitsDiff(stateToBytes(a), stateToBytes(b));
+  const series = [initDiff, ...diffs];
+  renderAvaChart(series);
+  renderAvaRounds(resA, resB, series);
+}
+
+function renderAvaChart(series) {
+  const max = 128;
+  const lastDiff = series[series.length - 1];
+  const lastPct = ((lastDiff / max) * 100).toFixed(1);
+
+  let html = `<div class="ava-chart">
+    <div class="ava-chart-header">
+      <div>
+        <div class="ava-metric">${lastDiff} / 128</div>
+        <div class="ava-metric-label">Bit difference at ciphertext</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="ava-metric" style="color: var(--accent);">${lastPct}%</div>
+        <div class="ava-metric-label">Of output bits differ</div>
+      </div>
+    </div>
+    <svg class="ava-svg" viewBox="0 0 800 220" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="avaFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#dc2626" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+        </linearGradient>
+      </defs>`;
+
+  for (let y = 0; y <= 4; y++) {
+    const ypos = 20 + (y / 4) * 170;
+    html += `<line x1="40" x2="790" y1="${ypos}" y2="${ypos}" stroke="#e5e7eb" stroke-width="0.5" stroke-dasharray="2,3"/>`;
+    html += `<text x="34" y="${ypos + 3}" text-anchor="end" fill="#9ca3af" font-family="JetBrains Mono" font-size="9" font-weight="600">${128 - y * 32}</text>`;
+  }
+  const pct50 = 20 + (0.5) * 170;
+  html += `<line x1="40" x2="790" y1="${pct50}" y2="${pct50}" stroke="#4f46e5" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>`;
+  html += `<text x="790" y="${pct50 - 4}" text-anchor="end" fill="#4f46e5" font-family="JetBrains Mono" font-size="9" font-weight="600">50% (ideal avalanche)</text>`;
+
+  const xStart = 40, xEnd = 790;
+  const dx = (xEnd - xStart) / (series.length - 1);
+  series.forEach((_, i) => {
+    const x = xStart + i * dx;
+    const label = i === 0 ? 'PT' : 'R' + i;
+    html += `<text x="${x}" y="212" text-anchor="middle" fill="#9ca3af" font-family="JetBrains Mono" font-size="9" font-weight="600">${label}</text>`;
+  });
+
+  let area = `M ${xStart},190 `;
+  series.forEach((v, i) => {
+    const x = xStart + i * dx;
+    const y = 20 + (1 - v / max) * 170;
+    area += `L ${x},${y} `;
+  });
+  area += `L ${xEnd},190 Z`;
+  html += `<path d="${area}" fill="url(#avaFill)"/>`;
+
+  let line = '';
+  series.forEach((v, i) => {
+    const x = xStart + i * dx;
+    const y = 20 + (1 - v / max) * 170;
+    line += (i === 0 ? 'M ' : 'L ') + x + ',' + y + ' ';
+  });
+  html += `<path d="${line}" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  series.forEach((v, i) => {
+    const x = xStart + i * dx;
+    const y = 20 + (1 - v / max) * 170;
+    html += `<circle cx="${x}" cy="${y}" r="5" fill="#dc2626"/>`;
+    html += `<circle cx="${x}" cy="${y}" r="2.5" fill="#fff"/>`;
+    html += `<text x="${x}" y="${y - 11}" text-anchor="middle" fill="#111827" font-family="JetBrains Mono" font-size="10" font-weight="700">${v}</text>`;
+  });
+
+  html += '</svg></div>';
+  document.getElementById('avaResults').innerHTML = html;
+}
+
+function renderAvaRounds(resA, resB, series) {
+  let html = `
+    <div class="ava-rounds-grid header">
+      <div class="ava-round-label">Round</div>
+      <div>Plaintext A path</div>
+      <div>Plaintext B path</div>
+      <div style="text-align:right;">Bits differ</div>
+    </div>`;
+  html += `
+    <div class="ava-rounds-grid">
+      <div class="ava-round-label" style="color: var(--text);">Plaintext</div>
+      <div>${renderMatrix(resA.rounds[0].addRoundKey, null, 'result', false, resB.rounds[0].addRoundKey)}</div>
+      <div>${renderMatrix(resB.rounds[0].addRoundKey, null, 'result', false, resA.rounds[0].addRoundKey)}</div>
+      <div class="ava-diff-count">${series[1]}</div>
+    </div>`;
+
+  for (let i = 1; i <= 10; i++) {
+    html += `
+      <div class="ava-rounds-grid">
+        <div class="ava-round-label">Round ${i}</div>
+        <div>${renderMatrix(resA.rounds[i].addRoundKey, null, 'result', false, resB.rounds[i].addRoundKey)}</div>
+        <div>${renderMatrix(resB.rounds[i].addRoundKey, null, 'result', false, resA.rounds[i].addRoundKey)}</div>
+        <div class="ava-diff-count">${series[i + 1]}</div>
+      </div>`;
+  }
+  document.getElementById('avaResults').innerHTML += html;
+}
+
+const QUIZ = [
+  { cat: 'Structure', q: 'How many rounds does AES-128 perform?', opts: ['8', '10', '12', '14'], ans: 1, explain: 'AES-128 uses 10 rounds. AES-192 uses 12, AES-256 uses 14.' },
+  { cat: 'Structure', q: 'Which operation is omitted in the final (10th) round of AES encryption?', opts: ['SubBytes', 'ShiftRows', 'MixColumns', 'AddRoundKey'], ans: 2, explain: 'MixColumns is skipped in the final round. Including it would complicate decryption without adding security.' },
+  { cat: 'Operations', q: 'What does SubBytes use to transform each byte?', opts: ['XOR with key', 'A 256-entry S-Box', 'A cyclic shift', 'A modulo operation'], ans: 1, explain: 'SubBytes replaces each byte by looking it up in the 256-entry S-Box.' },
+  { cat: 'Structure', q: 'How many bytes are in the AES state?', opts: ['8', '12', '16', '32'], ans: 2, explain: 'The AES state is a 4x4 matrix of bytes, 16 bytes total = 128 bits.' },
+  { cat: 'Math', q: 'What is the AES irreducible polynomial (hex)?', opts: ['0x11B', '0x1F', '0xFF', '0x100'], ans: 0, explain: 'The polynomial x^8 + x^4 + x^3 + x + 1 = 0x11B is used for modular reduction in GF(2^8).' },
+  { cat: 'Key', q: 'How many round keys does AES-128 generate in total?', opts: ['10', '11', '12', '16'], ans: 1, explain: 'AES-128 needs 11 round keys: one for the initial AddRoundKey plus one for each of the 10 rounds.' },
+  { cat: 'Operations', q: 'In ShiftRows, which row is NOT shifted?', opts: ['Row 0', 'Row 1', 'Row 2', 'Row 3'], ans: 0, explain: 'Row 0 stays in place. Rows 1, 2, 3 shift left by 1, 2, 3 positions respectively.' },
+  { cat: 'Operations', q: 'MixColumns operates on which structure?', opts: ['Individual bytes', 'Rows of the state', 'Columns of the state', 'Diagonals of the state'], ans: 2, explain: 'MixColumns treats each column as a polynomial over GF(2^8) and multiplies it by a fixed polynomial.' },
+  { cat: 'Key', q: 'In which process are round constants (Rcon) used?', opts: ['Encryption rounds', 'Decryption only', 'Key expansion', 'Final XOR'], ans: 2, explain: 'Round constants are used in key expansion to break symmetry and defend against related-key attacks.' },
+  { cat: 'Math', q: 'What is 0x57 XOR 0x83?', opts: ['0xDA', '0xD4', '0xFF', '0xAA'], ans: 1, explain: '0x57 = 01010111, 0x83 = 10000011. XOR = 11010100 = 0xD4.' },
+  { cat: 'Decrypt', q: 'During AES decryption, in what order are round keys applied?', opts: ['RK0 to RK10', 'RK10 to RK0', 'RK5 to RK0 then RK10 to RK5', 'Random order'], ans: 1, explain: 'Decryption applies round keys in reverse: RK10 first (for the initial AddRoundKey), then RK9, RK8, down to RK0.' },
+  { cat: 'Decrypt', q: 'What is the inverse of ShiftRows?', opts: ['ShiftRows again', 'Shift rows to the right', 'Apply InvSubBytes', 'Reverse column order'], ans: 1, explain: 'InvShiftRows shifts rows to the right by the same amounts ShiftRows shifted left, undoing the transformation.' },
+  { cat: 'Operations', q: 'AddRoundKey is an application of which operation?', opts: ['Addition', 'Multiplication', 'XOR', 'Rotation'], ans: 2, explain: 'AddRoundKey XORs the state with the round key byte by byte. XOR is its own inverse, which simplifies decryption.' },
+  { cat: 'Math', q: 'How many entries are in the AES S-Box?', opts: ['16', '128', '256', '512'], ans: 2, explain: 'The S-Box maps every possible byte value (0x00 through 0xFF) to another byte, 256 entries total.' },
+  { cat: 'Structure', q: 'How are input bytes loaded into the state matrix?', opts: ['Row by row', 'Column by column', 'Diagonally', 'Zigzag pattern'], ans: 1, explain: 'Bytes are loaded column-major: byte 0 to row 0 col 0, byte 1 to row 1 col 0, byte 4 to row 0 col 1, etc.' },
+  { cat: 'Security', q: 'What is the best-known cryptographic attack against AES-128?', opts: ['Brute force (2^128)', 'Biclique cryptanalysis (about 2^126.1)', 'Differential (2^64)', 'Linear (2^80)'], ans: 1, explain: 'Biclique cryptanalysis reduces AES-128 security from 2^128 to about 2^126.1, practically irrelevant but technically better than brute force.' },
+  { cat: 'Math', q: 'What does gmul(2, 0x80) equal in GF(2^8)?', opts: ['0x00', '0x1B', '0x100', '0xFF'], ans: 1, explain: '0x80 x 2 would be 0x100 but overflows 8 bits, so it is reduced by XOR with 0x1B, giving 0x1B.' },
+  { cat: 'Key', q: 'What three operations are applied to every 4th word during key expansion?', opts: ['RotWord, SubWord, XOR Rcon', 'ShiftRows, SubBytes, AddKey', 'MixCols, SBox, Shift', 'XOR, Rotate, Invert'], ans: 0, explain: 'RotWord (cyclic shift), SubWord (apply S-Box to each byte), XOR with Rcon are the three steps.' },
+  { cat: 'Decrypt', q: 'Which property of XOR makes AES decryption possible?', opts: ['Commutative', 'Associative', 'Self-inverse', 'Distributive'], ans: 2, explain: 'XOR is self-inverse: A XOR B XOR B = A. This means AddRoundKey is trivially reversible by applying the same round key again.' },
+  { cat: 'Security', q: 'Which mode of operation would you NOT use AES in for large data?', opts: ['CBC', 'CTR', 'GCM', 'ECB'], ans: 3, explain: 'ECB encrypts each block independently, so identical plaintext blocks produce identical ciphertext, patterns leak.' }
+];
+
+let quizInitialized = false;
+let quizState = { idx: 0, score: 0, answered: [], done: false };
+
+function initQuiz() {
+  quizInitialized = true;
+  quizState = { idx: 0, score: 0, answered: [], done: false };
+  quizState.questions = [...QUIZ].sort(() => Math.random() - 0.5);
+  renderQuiz();
+}
+
+function renderQuiz() {
+  const c = document.getElementById('quizContainer');
+  if (quizState.done) return renderQuizResult();
+
+  const total = quizState.questions.length;
+  const q = quizState.questions[quizState.idx];
+  const pct = ((quizState.idx) / total) * 100;
+
+  let html = `
+    <div class="quiz-stats">
+      <div class="quiz-stat"><div class="n">${quizState.idx + 1}</div><div class="lbl">Question</div></div>
+      <div class="quiz-stat"><div class="n">${quizState.score}</div><div class="lbl">Correct</div></div>
+      <div class="quiz-stat"><div class="n">${total}</div><div class="lbl">Total</div></div>
+    </div>
+    <div class="quiz-progress"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
+    <div class="quiz-question" id="quizQ">
+      <div class="q-meta">
+        <div class="q-number"><em>${String(quizState.idx + 1).padStart(2, '0')}</em> / ${String(total).padStart(2, '0')}</div>
+        <div class="q-cat">${q.cat}</div>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div class="q-options" id="qOpts">
+        ${q.opts.map((o, i) => `<button class="q-option" data-i="${i}"><span class="key">${String.fromCharCode(65 + i)}</span><span>${o}</span></button>`).join('')}
+      </div>
+    </div>
+  `;
+  c.innerHTML = html;
+  document.querySelectorAll('#qOpts .q-option').forEach(btn => {
+    btn.addEventListener('click', () => quizAnswer(+btn.dataset.i));
+  });
+}
+
+function quizAnswer(i) {
+  const q = quizState.questions[quizState.idx];
+  const correct = i === q.ans;
+  if (correct) quizState.score++;
+  quizState.answered.push({ i, correct });
+
+  const opts = document.querySelectorAll('#qOpts .q-option');
+  opts.forEach((b, idx) => {
+    b.classList.add('answered');
+    if (idx === q.ans) b.classList.add('correct');
+    if (idx === i && !correct) b.classList.add('wrong');
+    if (idx !== q.ans && idx !== i) b.classList.add('dimmed');
+  });
+
+  const explain = document.createElement('div');
+  explain.className = 'q-explain';
+  explain.innerHTML = `<strong>${correct ? 'Correct.' : 'Incorrect.'}</strong> ${q.explain}`;
+  document.getElementById('quizQ').appendChild(explain);
+
+  const next = document.createElement('div');
+  next.style.cssText = 'margin-top: 20px; text-align: right;';
+  const isLast = quizState.idx === quizState.questions.length - 1;
+  next.innerHTML = `<button class="btn btn-primary">${isLast ? 'See Results' : 'Next Question →'}</button>`;
+  next.querySelector('button').addEventListener('click', () => {
+    if (isLast) { quizState.done = true; renderQuiz(); }
+    else { quizState.idx++; renderQuiz(); }
+  });
+  document.getElementById('quizQ').appendChild(next);
+}
+
+function renderQuizResult() {
+  const total = quizState.questions.length;
+  const pct = Math.round((quizState.score / total) * 100);
+  let grade, note;
+  if (pct >= 90) { grade = 'Cryptographer'; note = 'You know AES deeply. Ready to teach it.'; }
+  else if (pct >= 75) { grade = 'Strong grasp'; note = 'You understand the core structure and math. Review what you missed.'; }
+  else if (pct >= 50) { grade = 'Getting there'; note = 'The fundamentals are there. Dig into the operations and key schedule.'; }
+  else { grade = 'More study needed'; note = 'Revisit the Cipher and S-Box sections, then try again.'; }
+
+  const c = document.getElementById('quizContainer');
+  c.innerHTML = `
+    <div class="quiz-result">
+      <div class="score">${quizState.score}<span style="color: var(--text-muted); font-size: 48px;">/${total}</span></div>
+      <div class="score-label">${pct}% · Correct</div>
+      <div class="grade"><em style="color:var(--accent); font-style:italic;">${grade}</em>, ${note}</div>
+      <button class="btn btn-primary" onclick="initQuiz()">Try Again</button>
+    </div>
+  `;
+}
+
 const chatFab = document.getElementById('chatFab');
 const chatPanel = document.getElementById('chatPanel');
 const chatClose = document.getElementById('chatClose');
@@ -242,46 +1632,96 @@ const chatSend = document.getElementById('chatSend');
 const chatQuick = document.getElementById('chatQuick');
 
 const knowledge = [
-  { keys:['what is aes','about aes','explain aes','aes stands','what does aes'], a:`<strong>AES</strong> stands for <strong>Advanced Encryption Standard</strong>. It's a symmetric block cipher standardized by NIST in 2001 (FIPS 197) that replaced DES. AES-128 uses a 128-bit key and encrypts data in 128-bit blocks through 10 rounds of transformations. It's used everywhere: HTTPS, WiFi (WPA2/3), disk encryption, messaging apps, and more.` },
-  { keys:['how to use','how do i use','how does this work','how to run','instructions','guide','tutorial','getting started','how use'], a:`Using this tool:<br>1. Enter a <strong>32 hex character</strong> plaintext (16 bytes)<br>2. Enter a <strong>32 hex character</strong> key<br>3. Click <strong>Encrypt</strong><br>4. Click any round (0–10) to expand and see <code>SubBytes</code>, <code>ShiftRows</code>, <code>MixColumns</code>, and <code>AddRoundKey</code> states<br>5. Click <strong>Show Key Schedule</strong> to view all 11 round keys<br><br>The tool comes pre-loaded with the official FIPS 197 test vector so you can verify correctness.` },
-  { keys:['subbytes','sub bytes','s-box','sbox','substitution'], a:`<strong>SubBytes</strong> is a non-linear byte substitution step. Every byte in the state is replaced by looking it up in the <strong>S-Box</strong> (a precomputed 256-entry table). This is the main source of AES's confusion property. It resists linear and differential cryptanalysis because the S-Box is built from the multiplicative inverse in GF(2⁸) followed by an affine transformation.` },
-  { keys:['shiftrows','shift rows','row shift'], a:`<strong>ShiftRows</strong> cyclically shifts the rows of the state matrix to the left:<br>• Row 0: no shift<br>• Row 1: shift left by 1<br>• Row 2: shift left by 2<br>• Row 3: shift left by 3<br><br>This, combined with MixColumns, provides diffusion — making every input byte affect every output byte after a few rounds.` },
-  { keys:['mixcolumns','mix columns','column mix'], a:`<strong>MixColumns</strong> treats each column of the state as a polynomial over GF(2⁸) and multiplies it by a fixed polynomial. Each output byte in a column depends on all 4 input bytes in that column. This gives strong diffusion. It's skipped in the final round for a mathematical reason: it would make decryption structurally different without adding security.` },
-  { keys:['addroundkey','add round key','xor key','round key xor'], a:`<strong>AddRoundKey</strong> is simply an XOR between the state and the round key. It's the only step that actually uses the key, and it's what makes AES key-dependent. AES applies it 11 times total: once before round 1, and once at the end of each of the 10 rounds.` },
-  { keys:['key expansion','key schedule','round keys','expand key','how keys'], a:`<strong>Key Expansion</strong> generates 11 round keys (RK0–RK10) from the original 128-bit key:<br>• Start with 4 words (16 bytes) from the original key<br>• Generate 40 more words using <code>RotWord</code>, <code>SubWord</code>, and XOR with round constants (Rcon)<br>• Every 4th word uses RotWord + SubWord + Rcon XOR<br>• All other words are just XOR of the previous word and the word 4 positions back<br><br>Click <strong>Show Key Schedule</strong> in the app to see all 11 round keys.` },
-  { keys:['rounds','how many rounds','number of rounds','round count'], a:`AES-128 uses exactly <strong>10 rounds</strong>, plus one initial <code>AddRoundKey</code>. Each middle round (1–9) does: SubBytes → ShiftRows → MixColumns → AddRoundKey. The final round (10) skips MixColumns. AES-192 uses 12 rounds and AES-256 uses 14 rounds.` },
-  { keys:['lookup table','why lookup','sbox table','t-box','why table'], a:`<strong>Lookup tables</strong> make AES fast in software. Instead of computing the S-Box (inverse in GF(2⁸) + affine map) for every byte, the 256 values are precomputed and stored as an array. More advanced implementations use "T-tables" that combine SubBytes, ShiftRows, and MixColumns into one table lookup per byte — but they have cache-timing vulnerabilities, which is why modern CPUs use <strong>AES-NI</strong> hardware instructions.` },
-  { keys:['gf','galois','finite field','gmul','multiplication','xtime'], a:`AES operates in <strong>GF(2⁸)</strong> — the Galois field of 256 elements. Bytes are treated as polynomials over GF(2). Addition is XOR. Multiplication uses the irreducible polynomial <code>x⁸ + x⁴ + x³ + x + 1</code> (0x11B). MixColumns needs multiplication by 2 and 3 in this field — that's what our <code>gmul()</code> function implements.` },
-  { keys:['invalid','error','not working','wrong input','broken','bug'], a:`Most errors come from input format. Check:<br>• Input is exactly <strong>32 characters</strong> (16 bytes = 32 hex digits)<br>• Only uses <strong>0–9 and a–f</strong> (hex digits)<br>• No spaces or other characters<br><br>The character counter next to each input turns <span style="color:#00e676">green</span> when valid. If it's <span style="color:#ff5252">red</span>, input is incomplete or invalid.` },
-  { keys:['hex','hexadecimal','what hex'], a:`<strong>Hexadecimal</strong> is base-16: digits 0–9 and a–f. Each hex character represents 4 bits, so 2 hex characters = 1 byte. AES-128 needs 16 bytes = 32 hex characters for both input and key.<br>Example: the byte 255 is <code>FF</code> in hex.` },
-  { keys:['test vector','example','sample','fips','default','preloaded'], a:`The tool is pre-loaded with the official NIST <strong>FIPS 197 Appendix B</strong> test vector:<br>• Plaintext: <code>3243F6A8885A308D313198A2E0370734</code><br>• Key: <code>2B7E151628AED2A6ABF7158809CF4F3C</code><br>• Expected Ciphertext: <code>3925841D02DC09FBDC118597196A0B32</code><br><br>If you get that ciphertext, the implementation is correct.` },
-  { keys:['state','matrix','4x4','4 by 4','column major'], a:`The AES <strong>state</strong> is a 4×4 byte matrix. The 16 input bytes are placed column by column:<br>• Byte 0 → row 0, col 0<br>• Byte 1 → row 1, col 0<br>• Byte 4 → row 0, col 1<br>• ...and so on<br><br>This is called <strong>column-major</strong> ordering. All AES operations work on this 4×4 matrix.` },
-  { keys:['rcon','round constant'], a:`<strong>Rcon</strong> (round constants) are used in key expansion. Rcon[i] = (2^(i-1) mod 0x11B, 0, 0, 0) in GF(2⁸). Values: <code>01, 02, 04, 08, 10, 20, 40, 80, 1B, 36</code>. They break symmetry in the key schedule, preventing related-key attacks.` },
-  { keys:['decrypt','decryption','reverse','inverse'], a:`This tool only does <strong>encryption</strong>. Decryption runs the rounds in reverse using InvSubBytes, InvShiftRows, and InvMixColumns, with the round keys applied in reverse order (RK10 → RK0). The inverse S-Box is a separate lookup table.` },
-  { keys:['secure','safe','broken','cracked','security','attack'], a:`AES-128 is <strong>still considered secure</strong> in 2026. The best known attack (biclique cryptanalysis) reduces security from 2¹²⁸ to about 2¹²⁶·¹ — practically irrelevant. AES's weaknesses in practice come from <strong>implementation flaws</strong>: side-channel attacks, cache timing, poor random number generation, or bad modes of operation (like ECB).` },
-  { keys:['who','team','authors','students','made this','who made'], a:`This tool was built for <strong>EECE 455</strong> by:<br>• Jad Moharam<br>• Mohamed Dayeh<br>• Mohamad Taha<br>• Ali Waked` },
-  { keys:['github','source','code','repo','repository'], a:`The source code is hosted on GitHub Pages. You can view the full HTML/JS implementation directly in the page source (right-click → View Page Source).` },
-  { keys:['ecb','cbc','mode','modes','block mode'], a:`AES is a <strong>block cipher</strong> — it only encrypts one 128-bit block. To encrypt more data, you use a <strong>mode of operation</strong>:<br>• <strong>ECB</strong>: encrypt each block independently (insecure, patterns leak)<br>• <strong>CBC</strong>: XOR previous ciphertext with next plaintext<br>• <strong>CTR</strong>: turns AES into a stream cipher<br>• <strong>GCM</strong>: authenticated encryption, modern standard<br><br>This tool demonstrates the raw block cipher — one block, no mode.` },
-  { keys:['hi','hello','hey','sup'], a:`Hey! I can answer questions about AES, the operations inside it, how to use this visualizer, or troubleshoot input errors. Try one of the quick buttons below or ask anything.` },
-  { keys:['thank','thanks'], a:`Anytime. Good luck with your project!` }
+  { keys:['what is aes','about aes','explain aes','aes stands'], a:`<strong>AES</strong>, Advanced Encryption Standard. A symmetric block cipher standardized by NIST (FIPS 197, 2001). AES-128 encrypts 128-bit blocks under a 128-bit key in 10 rounds. Used everywhere: HTTPS, WiFi, disk encryption, messaging.` },
+  { keys:['decrypt','decryption','inverse','invert','reverse'], a:`<strong>Decryption</strong> uses the inverse operations:<br>- <strong>InvSubBytes</strong>, inverse S-Box lookup<br>- <strong>InvShiftRows</strong>, shift rows right<br>- <strong>InvMixColumns</strong>, multiply by inverse matrix [0E 0B 0D 09...]<br><br>Round keys applied in reverse order: RK10 first, RK0 last. Switch to <strong>Decrypt</strong> mode in the Cipher tab to see it all in action.` },
+  { keys:['how to use','how do i use','instructions','getting started','tutorial'], a:`This app has six sections, navigate using the tabs at the top:<br><br><strong>01 Cipher:</strong> Encrypt or Decrypt. Toggle at the top of the tab.<br><strong>02 S-Box:</strong> Forward and Inverse S-Box, hover to inspect.<br><strong>03 Galois Field:</strong> Watch GF(2^8) multiplication step by step.<br><strong>04 Avalanche:</strong> Flip a bit, see diffusion.<br><strong>05 Quiz:</strong> Test yourself.<br><strong>06 About:</strong> Team and tech.` },
+  { keys:['subbytes','sub bytes','s-box','sbox','substitution'], a:`<strong>SubBytes</strong>, non-linear byte substitution. Each byte is replaced via the S-Box (256-entry lookup table). Provides confusion. Resists linear/differential attacks. Open the <strong>S-Box</strong> tab to inspect it, or toggle to the Inverse S-Box used in decryption.` },
+  { keys:['shiftrows','shift rows','row shift'], a:`<strong>ShiftRows</strong> cycles each row left by a different amount:<br>- Row 0: no shift<br>- Row 1: shift left 1<br>- Row 2: shift left 2<br>- Row 3: shift left 3<br><br><strong>InvShiftRows</strong> shifts rows right by the same amounts. Combined with MixColumns, ShiftRows gives full diffusion.` },
+  { keys:['mixcolumns','mix columns','column mix'], a:`<strong>MixColumns</strong> treats each column as a polynomial over GF(2^8) and multiplies by a fixed polynomial. Each output byte depends on all 4 input bytes in its column. <strong>InvMixColumns</strong> uses the inverse matrix [0E 0B 0D 09; 09 0E 0B 0D; 0D 09 0E 0B; 0B 0D 09 0E]. See the <strong>Galois Field</strong> tab for the math.` },
+  { keys:['addroundkey','add round key','xor key'], a:`<strong>AddRoundKey</strong>, simple XOR between state and round key. The only step that uses the key. Applied 11 times. Because XOR is self-inverse, AddRoundKey is trivially reversible, which simplifies decryption.` },
+  { keys:['key expansion','key schedule','round keys','expand key'], a:`<strong>Key Expansion</strong> generates 11 round keys from the 128-bit cipher key. Uses RotWord, SubWord, and XOR with Rcon for every 4th word. Toggle <strong>Show Key Schedule</strong> on the Cipher tab to see all 11 keys. In decryption, the same keys are used but in reverse order.` },
+  { keys:['rounds','how many rounds','round count'], a:`AES-128 uses <strong>10 rounds</strong>. Each middle round does SubBytes, ShiftRows, MixColumns, AddRoundKey. Round 10 skips MixColumns. Decryption reverses this.` },
+  { keys:['lookup table','why lookup','sbox table'], a:`<strong>Lookup tables</strong> make AES fast in software. The S-Box is precomputed as a 256-entry array, so SubBytes is one array access per byte. Same for the Inverse S-Box used in decryption.` },
+  { keys:['gf','galois','finite field','gmul'], a:`AES operates in <strong>GF(2^8)</strong>, the Galois field of 256 elements. Bytes are polynomials. Addition is XOR. Multiplication uses the irreducible polynomial 0x11B. Open the <strong>Galois Field</strong> tab to see it step by step.` },
+  { keys:['avalanche','diffusion','bit flip','one bit change'], a:`The <strong>avalanche effect</strong>, flipping one input bit should change about half of all output bits. AES achieves this after a few rounds. Try the <strong>Avalanche</strong> tab to see it live.` },
+  { keys:['animation','animate','animate button','play'], a:`The <strong>Animate</strong> button (Cipher tab) plays every step of the cipher back at adjustable speed. Each transformation gets its own frame. Bytes that changed from the previous step are highlighted. Works for both encryption and decryption.` },
+  { keys:['invalid','error','not working','wrong'], a:`Check your input:<br>- Exactly <strong>32 characters</strong><br>- Only hex digits: <strong>0-9 and a-f</strong><br>- No spaces<br><br>The counter turns green on valid input.` },
+  { keys:['hex','hexadecimal'], a:`<strong>Hexadecimal</strong>, base 16, digits 0-9 and a-f. Two hex chars = one byte. AES-128 needs 16 bytes = 32 hex characters.` },
+  { keys:['test vector','fips','example','preloaded'], a:`Loaded by default: the NIST <strong>FIPS 197 Appendix B</strong> test vector:<br>- PT: <code>3243F6A8885A308D313198A2E0370734</code><br>- Key: <code>2B7E151628AED2A6ABF7158809CF4F3C</code><br>- CT: <code>3925841D02DC09FBDC118597196A0B32</code><br><br>In Decrypt mode, the ciphertext is pre-loaded and should return the original plaintext.` },
+  { keys:['state','matrix','4x4','column major'], a:`The AES <strong>state</strong> is a 4x4 byte matrix, loaded column-major from the 16 input bytes.` },
+  { keys:['rcon','round constant'], a:`<strong>Rcon</strong> values: <code>01 02 04 08 10 20 40 80 1B 36</code>. Used in key expansion, break schedule symmetry.` },
+  { keys:['secure','safe','broken','cracked','security'], a:`AES-128 is <strong>still secure</strong>. Best theoretical attack (biclique) reduces security to about 2^126.1, practically irrelevant. Real-world weaknesses come from implementation (side channels) or bad modes (ECB).` },
+  { keys:['who','team','authors'], a:`Built for <strong>EECE 455</strong> by:<br>- Jad Moharam<br>- Mohamed Dayeh<br>- Mohamad Taha<br>- Ali Waked` },
+  { keys:['quiz','test','questions'], a:`The <strong>Quiz</strong> tab has 20 questions covering structure, operations, math, key schedule, decryption, and security. Randomized order. Instant feedback with explanations.` },
+  { keys:['ecb','cbc','ctr','gcm','mode'], a:`AES alone is a <strong>block cipher</strong>. Modes of operation: <strong>ECB</strong> (insecure, don't use), <strong>CBC</strong>, <strong>CTR</strong>, <strong>GCM</strong> (authenticated, modern standard).` },
+  { keys:['hi','hello','hey'], a:`Hey. Ask me about any AES operation, the math, encryption, decryption, or how to use any section of this tool.` },
+  { keys:['thank','thanks'], a:`Anytime. Good luck with the project.` }
 ];
 
-const quickQs = ['What is AES?','How do I use this?','Explain SubBytes','What is key expansion?','Why lookup tables?','Test vector?'];
+const quickQs = ['What is AES?', 'Explain decryption', 'What is the avalanche effect?', 'How does key expansion work?', 'Explain GF(2^8)', 'Test vector?'];
 
-function addMessage(text, role) { const msg = document.createElement('div'); msg.className = 'msg ' + role; msg.innerHTML = text; chatMessages.appendChild(msg); chatMessages.scrollTop = chatMessages.scrollHeight; }
-function findAnswer(q) { const lower = q.toLowerCase().trim(); let best = null, bestScore = 0; for (const entry of knowledge) { let score = 0; for (const k of entry.keys) if (lower.includes(k)) score += k.length; if (score > bestScore) { bestScore = score; best = entry; } } if (best) return best.a; return `I'm not sure about that specific question. Try asking about:<br>• <strong>AES operations</strong> (SubBytes, ShiftRows, MixColumns, AddRoundKey)<br>• <strong>Key expansion</strong> or <strong>round keys</strong><br>• <strong>How to use</strong> this visualizer<br>• <strong>Lookup tables</strong> or <strong>GF(2⁸)</strong> math<br>• Input <strong>errors</strong> or <strong>hex format</strong>`; }
-function sendMessage() { const q = chatInput.value.trim(); if (!q) return; addMessage(q, 'user'); chatInput.value = ''; setTimeout(() => addMessage(findAnswer(q), 'bot'), 350); }
-
+function addMessage(text, role) {
+  const msg = document.createElement('div');
+  msg.className = 'msg ' + role;
+  msg.innerHTML = text;
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+function findAnswer(q) {
+  const lower = q.toLowerCase().trim();
+  let best = null, bestScore = 0;
+  for (const entry of knowledge) {
+    let score = 0;
+    for (const k of entry.keys) if (lower.includes(k)) score += k.length;
+    if (score > bestScore) { bestScore = score; best = entry; }
+  }
+  if (best) return best.a;
+  return `I'm not sure about that specifically. Try asking about:<br>- <strong>The operations</strong> (SubBytes, ShiftRows, MixColumns, AddRoundKey)<br>- <strong>Encryption or decryption</strong><br>- <strong>Key expansion</strong><br>- <strong>The avalanche effect</strong><br>- <strong>Galois field math</strong>`;
+}
+function sendChatMessage() {
+  const q = chatInput.value.trim();
+  if (!q) return;
+  addMessage(q, 'user');
+  chatInput.value = '';
+  setTimeout(() => addMessage(findAnswer(q), 'bot'), 350);
+}
 chatFab.addEventListener('click', () => {
-  chatPanel.classList.add('open'); chatFab.classList.add('hidden');
-  if (chatMessages.children.length === 0) addMessage(`Hi! I'm your <strong>AES Assistant</strong>. Ask me about AES-128, any of the round operations, key expansion, or how to use this tool.`, 'bot');
+  chatPanel.classList.add('open');
+  chatFab.classList.add('hidden');
+  if (chatMessages.children.length === 0) {
+    addMessage(`Hi, I'm the <strong>AES Assistant</strong>. I can explain any of the operations, the math, encryption, decryption, or how to use each section of this tool.`, 'bot');
+  }
   chatInput.focus();
 });
-chatClose.addEventListener('click', () => { chatPanel.classList.remove('open'); chatFab.classList.remove('hidden'); });
-chatSend.addEventListener('click', sendMessage);
-chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+chatClose.addEventListener('click', () => {
+  chatPanel.classList.remove('open');
+  chatFab.classList.remove('hidden');
+});
+chatSend.addEventListener('click', sendChatMessage);
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChatMessage(); });
+quickQs.forEach(q => {
+  const btn = document.createElement('button');
+  btn.className = 'quick-btn';
+  btn.textContent = q;
+  btn.addEventListener('click', () => { chatInput.value = q; sendChatMessage(); });
+  chatQuick.appendChild(btn);
+});
 
-quickQs.forEach(q => { const btn = document.createElement('button'); btn.className = 'quick-btn'; btn.textContent = q; btn.addEventListener('click', () => { chatInput.value = q; sendMessage(); }); chatQuick.appendChild(btn); });
+runCipher();
+openRound = 0;
+renderCipher();
+
+window.toggleRound = toggleRound;
+window.sboxInspect = sboxInspect;
+window.sboxRandom = sboxRandom;
+window.gfSet = gfSet;
+window.gfRandom = gfRandom;
+window.flipByte = flipByte;
+window.pauseAnim = pauseAnim;
+window.animIndex = animIndex;
+window.renderAnimFrame = renderAnimFrame;
+window.findFirstStepForRound = findFirstStepForRound;
+window.initQuiz = initQuiz;
 </script>
 </body>
 </html>
